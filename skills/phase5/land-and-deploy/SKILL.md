@@ -175,7 +175,7 @@ and whether the deploy configuration has changed since then:
 ```bash
 eval "$(bin/robobuilder-slug 2>/dev/null)"
 eval "$(bin/robobuilder-paths)"
-if [ ! -f "$ROBOBUILDER_STATE_ROOT/projects/$SLUG/land-deploy-confirmed ]; then
+if [ ! -f "$ROBOBUILDER_STATE_ROOT/projects/$SLUG/land-deploy-confirmed" ]; then
   echo "FIRST_RUN"
 else
   # Check if deploy config has changed since confirmation

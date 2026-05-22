@@ -30,3 +30,19 @@ def test_runtime_aware_skills_reference_runtime_contract():
     ]
 
     assert missing == []
+
+
+def test_runtime_state_paths_are_quoted_in_shell_snippets():
+    offenders = []
+    for path in sorted((REPO_ROOT / "skills").rglob("SKILL.md")):
+        text = path.read_text()
+        for line_no, line in enumerate(text.splitlines(), start=1):
+            if "$ROBOBUILDER_STATE_ROOT/projects/$SLUG/" not in line:
+                continue
+            stripped = line.strip()
+            if not stripped.startswith(("if ", "[ ", "cat ", "echo ", "mkdir ", "tail ", "ls ")):
+                continue
+            if '"$ROBOBUILDER_STATE_ROOT/projects/$SLUG/' not in line:
+                offenders.append(f"{path.relative_to(REPO_ROOT)}:{line_no}: {stripped}")
+
+    assert offenders == []
