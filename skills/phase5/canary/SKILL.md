@@ -262,7 +262,8 @@ Log the result for the review dashboard:
 
 ```bash
 eval "$(bin/robobuilder-slug 2>/dev/null)"
-mkdir -p ~/.robobuilder/projects/$SLUG
+eval "$(bin/robobuilder-paths)"
+mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 ```
 
 Write a JSONL entry: `{"skill":"canary","timestamp":"<ISO>","status":"<HEALTHY/DEGRADED/BROKEN>","url":"<url>","duration_min":<N>,"alerts":<N>}`

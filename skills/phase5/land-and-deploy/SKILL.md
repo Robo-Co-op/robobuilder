@@ -174,11 +174,12 @@ and whether the deploy configuration has changed since then:
 
 ```bash
 eval "$(bin/robobuilder-slug 2>/dev/null)"
-if [ ! -f ~/.robobuilder/projects/$SLUG/land-deploy-confirmed ]; then
+eval "$(bin/robobuilder-paths)"
+if [ ! -f "$ROBOBUILDER_STATE_ROOT/projects/$SLUG/land-deploy-confirmed ]; then
   echo "FIRST_RUN"
 else
   # Check if deploy config has changed since confirmation
-  SAVED_HASH=$(cat ~/.robobuilder/projects/$SLUG/land-deploy-confirmed 2>/dev/null)
+  SAVED_HASH=$(cat "$ROBOBUILDER_STATE_ROOT/projects/$SLUG/land-deploy-confirmed" 2>/dev/null)
   CURRENT_HASH=$(sed -n '/## Deploy Configuration/,/^## /p' CLAUDE.md 2>/dev/null | shasum -a 256 | cut -d' ' -f1)
   # Also hash workflow files that affect deploy behavior
   WORKFLOW_HASH=$(find .github/workflows -maxdepth 1 \( -name '*deploy*' -o -name '*cd*' \) 2>/dev/null | xargs cat 2>/dev/null | shasum -a 256 | cut -d' ' -f1)
@@ -372,10 +373,12 @@ Present the full dry-run results to the user via AskUserQuestion:
 
 Save the deploy config fingerprint so we can detect future changes:
 ```bash
-mkdir -p ~/.robobuilder/projects/$SLUG
+eval "$(bin/robobuilder-slug 2>/dev/null)"
+eval "$(bin/robobuilder-paths)"
+mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 CURRENT_HASH=$(sed -n '/## Deploy Configuration/,/^## /p' CLAUDE.md 2>/dev/null | shasum -a 256 | cut -d' ' -f1)
 WORKFLOW_HASH=$(find .github/workflows -maxdepth 1 \( -name '*deploy*' -o -name '*cd*' \) 2>/dev/null | xargs cat 2>/dev/null | shasum -a 256 | cut -d' ' -f1)
-echo "${CURRENT_HASH}-${WORKFLOW_HASH}" > ~/.robobuilder/projects/$SLUG/land-deploy-confirmed
+echo "${CURRENT_HASH}-${WORKFLOW_HASH}" > "$ROBOBUILDER_STATE_ROOT/projects/$SLUG/land-deploy-confirmed"
 ```
 Continue to Step 2.
 
@@ -560,7 +563,8 @@ If tests fail: **BLOCKER.** Cannot merge with failing tests.
 
 ```bash
 setopt +o nomatch 2>/dev/null || true  # zsh compat
-ls -t ~/.robobuilder-dev/evals/*-e2e-*-$(date +%Y-%m-%d)*.json 2>/dev/null | head -20
+eval "$(bin/robobuilder-paths)"
+ls -t "$ROBOBUILDER_STATE_ROOT"/evals/*-e2e-*-$(date +%Y-%m-%d)*.json 2>/dev/null | head -20
 ```
 
 For each eval file from today, parse pass/fail counts. Show:
@@ -576,7 +580,8 @@ If E2E results exist but have failures: **WARNING — N tests failed.** List the
 
 ```bash
 setopt +o nomatch 2>/dev/null || true  # zsh compat
-ls -t ~/.robobuilder-dev/evals/*-llm-judge-*-$(date +%Y-%m-%d)*.json 2>/dev/null | head -5
+eval "$(bin/robobuilder-paths)"
+ls -t "$ROBOBUILDER_STATE_ROOT"/evals/*-llm-judge-*-$(date +%Y-%m-%d)*.json 2>/dev/null | head -5
 ```
 
 If found, parse and show pass/fail. If not found, note "No LLM evals run today."
@@ -1052,7 +1057,8 @@ Log to the review dashboard:
 
 ```bash
 eval "$(bin/robobuilder-slug 2>/dev/null)"
-mkdir -p ~/.robobuilder/projects/$SLUG
+eval "$(bin/robobuilder-paths)"
+mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 ```
 
 Write a JSONL entry with timing data:

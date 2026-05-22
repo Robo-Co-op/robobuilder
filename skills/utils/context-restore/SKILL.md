@@ -56,8 +56,9 @@ Parse the user's input:
 ### Step 1: Find saved contexts
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)" && mkdir -p ~/.robobuilder/projects/$SLUG
+eval "$(bin/robobuilder-slug 2>/dev/null)"
 eval "$(bin/robobuilder-paths)"
+mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 CHECKPOINT_DIR="$ROBOBUILDER_STATE_ROOT/projects/$SLUG/checkpoints"
 if [ ! -d "$CHECKPOINT_DIR" ]; then
   echo "NO_CHECKPOINTS"

@@ -211,10 +211,12 @@ DETAILS: Lint (3 warnings)
 ## Step 5: Persist to Health History
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)" && mkdir -p ~/.robobuilder/projects/$SLUG
+eval "$(bin/robobuilder-slug 2>/dev/null)"
+eval "$(bin/robobuilder-paths)"
+mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 ```
 
-Append one JSONL line to `~/.robobuilder/projects/$SLUG/health-history.jsonl`:
+Append one JSONL line to `$ROBOBUILDER_STATE_ROOT/projects/$SLUG/health-history.jsonl`:
 
 ```json
 {"ts":"2026-03-31T14:30:00Z","branch":"main","score":9.1,"typecheck":10,"lint":8,"test":10,"deadcode":7,"shell":10,"duration_s":23}
@@ -234,12 +236,14 @@ and start new tracking from the first post-D6 run.
 
 ## Step 6: Trend Analysis + Recommendations
 
-Read the last 10 entries from `~/.robobuilder/projects/$SLUG/health-history.jsonl` (if the
+Read the last 10 entries from `$ROBOBUILDER_STATE_ROOT/projects/$SLUG/health-history.jsonl` (if the
 file exists and has prior entries).
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)" && mkdir -p ~/.robobuilder/projects/$SLUG
-tail -10 ~/.robobuilder/projects/$SLUG/health-history.jsonl 2>/dev/null || echo "NO_HISTORY"
+eval "$(bin/robobuilder-slug 2>/dev/null)"
+eval "$(bin/robobuilder-paths)"
+mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
+tail -10 "$ROBOBUILDER_STATE_ROOT/projects/$SLUG/health-history.jsonl" 2>/dev/null || echo "NO_HISTORY"
 ```
 
 **If prior entries exist, show the trend:**

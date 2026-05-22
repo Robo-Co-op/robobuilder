@@ -12,11 +12,17 @@ Project-scoped state lives under:
 ${ROBOBUILDER_HOME:-$HOME/.robobuilder}/projects/<project-slug>
 ```
 
+Eval result files, when a workflow produces them, live under:
+
+```bash
+${ROBOBUILDER_HOME:-$HOME/.robobuilder}/evals
+```
+
 Use the helper scripts instead of repeating path and slug logic in skills:
 
 ```bash
 eval "$(bin/robobuilder-slug 2>/dev/null)"
-bin/robobuilder-paths
+eval "$(bin/robobuilder-paths)"
 ```
 
 Available helpers:

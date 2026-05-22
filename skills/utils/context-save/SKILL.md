@@ -60,7 +60,9 @@ If the user types `/context-save resume` or `/context-save restore`, tell them:
 ### Step 1: Gather state
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)" && mkdir -p ~/.robobuilder/projects/$SLUG
+eval "$(bin/robobuilder-slug 2>/dev/null)"
+eval "$(bin/robobuilder-paths)"
+mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 ```
 
 Collect the current working state:
@@ -120,8 +122,9 @@ inject shell metacharacters into any subsequent command. The sanitizer is an
 allowlist: only `a-z 0-9 - .` survive.
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)" && mkdir -p ~/.robobuilder/projects/$SLUG
+eval "$(bin/robobuilder-slug 2>/dev/null)"
 eval "$(bin/robobuilder-paths)"
+mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 CHECKPOINT_DIR="$ROBOBUILDER_STATE_ROOT/projects/$SLUG/checkpoints"
 mkdir -p "$CHECKPOINT_DIR"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
@@ -207,8 +210,9 @@ Restore later with /context-restore.
 ### Step 1: Gather saved contexts
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)" && mkdir -p ~/.robobuilder/projects/$SLUG
+eval "$(bin/robobuilder-slug 2>/dev/null)"
 eval "$(bin/robobuilder-paths)"
+mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 CHECKPOINT_DIR="$ROBOBUILDER_STATE_ROOT/projects/$SLUG/checkpoints"
 if [ -d "$CHECKPOINT_DIR" ]; then
   echo "CHECKPOINT_DIR=$CHECKPOINT_DIR"

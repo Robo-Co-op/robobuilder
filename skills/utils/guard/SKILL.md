@@ -51,6 +51,10 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 Activates both destructive command warnings and directory-scoped edit restrictions.
 This is the combination of `/careful` + `/freeze` in a single command.
 
+## RoboBuilder Runtime Notes
+
+Use `bin/robobuilder-paths` for local state. Full contract: `docs/RUNTIME.md`.
+
 **Dependency note:** This skill references hook scripts from the sibling `/careful`
 and `/freeze` skill directories. Both must be installed (they are installed together
 with the companion safety skills).
