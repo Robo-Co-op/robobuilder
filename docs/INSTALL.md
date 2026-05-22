@@ -34,10 +34,10 @@ To enroll an entire repo's contributors, add to your project's `.claude/settings
   "extraKnownMarketplaces": {
     "robo-coop-tools": {
       "source": { "source": "github", "repo": "Robo-Co-op/robobuilder" }
-    },
-    "enabledPlugins": {
-      "robobuilder@robo-coop-tools": true
     }
+  },
+  "enabledPlugins": {
+    "robobuilder@robo-coop-tools": true
   }
 }
 ```
