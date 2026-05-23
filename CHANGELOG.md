@@ -2,6 +2,19 @@
 
 All notable changes to robobuilder.
 
+## [1.2.0] — 2026-05-23
+
+New skill: `blueprint-sync` — keeps design documents honest as code evolves.
+
+### Added
+- `skills/utils/blueprint-sync/` — new cross-cutting skill with 4 modes:
+  - `drift-check`: detect gaps between docs and code, output a structured drift report
+  - `update-docs`: surgically update docs to match current reality, commit changes
+  - `retrospective`: post-ship review + doc sync + optional ADR creation
+  - `living-doc`: lightweight single-pass update after small PRs
+  - Auto-detects mode from context (post-ship → retrospective, etc.)
+- `ship` skill: added `/robobuilder:blueprint-sync` to See Also; added post-ship suggestion rule to Important Rules
+
 ## [1.1.0] — 2026-05-12
 
 Polish & ship release. Same skill/agent/hook surface as v1.0; security and ergonomics hardening.

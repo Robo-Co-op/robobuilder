@@ -30,7 +30,7 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 > **robobuilder pedagogy** (phase5)
 > - **What**: |
 > - **When**: see the description above for trigger keywords; details in the body below.
-> - **See Also**: /robobuilder:land-and-deploy, /robobuilder:canary
+> - **See Also**: /robobuilder:land-and-deploy, /robobuilder:canary, /robobuilder:blueprint-sync
 > - **Bootcamp**: M3.code.ship
 > - **Origin**: Garry Tan upstream, adapted for RoboBuilder
 
@@ -2319,3 +2319,4 @@ This step is automatic — never skip it, never ask for confirmation.
 - **Never push without fresh verification evidence.** If code changed after Step 5 tests, re-run before pushing.
 - **Step 7 generates coverage tests.** They must pass before committing. Never commit failing tests.
 - **The goal is: user says `/ship`, next thing they see is the review + PR URL + auto-synced docs.**
+- **After every ship, suggest `/robobuilder:blueprint-sync retrospective`** to sync design docs with what was actually built. User can skip, but always offer it.
