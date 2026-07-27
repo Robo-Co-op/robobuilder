@@ -1,59 +1,90 @@
-# RoboBuilder on Claude Code (web)
+# RoboBuilder outside the terminal CLI (desktop app & web)
 
-Claude Code on the web (claude.ai/code) is a separate runtime from the local CLI.
-The plugin-marketplace flow in [INSTALL.md](./INSTALL.md) (`/plugin marketplace add`
-+ `/plugin install`) assumes a local `~/.claude/plugins/` directory and does **not**
-carry over to web sessions. Two things actually work there:
+`/plugin` is a **terminal-CLI command** — it opens an interactive panel that doesn't
+exist in the Claude desktop app or in Claude Code on the web. Running it there gives:
 
-## Option 1: Commit skills into the repo (per-project, most reliable)
+```
+/plugin isn't available in this environment.
+```
 
-A web session clones your repo and reads `.claude/skills/` (and `.claude/agents/`)
-from whichever branch it actually checks out — normally the repo's default branch.
+That is expected, not a broken install. Pick whichever option below matches your
+environment.
 
-1. Copy the skill(s) you want from `skills/<phase>/<name>/SKILL.md` into your
-   project repo under `.claude/skills/<name>/SKILL.md` (and `.claude/agents/` for
-   any agents the skill uses).
-2. Commit and merge to the **default branch**. Skills on a feature branch are
-   invisible to a fresh web session until that branch is merged — a PR sitting
-   open is not enough.
-3. Start a new web session on the project; the skill appears in the skill list
-   immediately, no `/reload-plugins` equivalent needed.
+## Option 1: The desktop app's plugin browser
 
-This is scoped to that one repo. For multiple projects, repeat per repo, or see
-Option 2.
+The Claude desktop app ships a graphical plugin browser. Use it instead of
+`/plugin` — same marketplaces, same plugins, no terminal needed.
 
-## Option 2: Register as an account-level skill (works across all projects)
+## Option 2: Declare plugins in `.claude/settings.json` (desktop, web, cloud)
 
-claude.ai's **Customize > スキル (Skills) > 追加 > スキルの指示を記述** flow
-creates a skill tied to your account rather than a repo, and it **is** picked up
-by Claude Code web sessions (confirmed 2026-07-18 — this was previously assumed
-to be a Desktop/Cowork-only feature; it is not).
+The documented path for web and cloud sessions, and it works in the desktop app
+too. Add to your project's `.claude/settings.json`:
 
-1. Open a `SKILL.md`, and split its frontmatter `description` and body into the
-   form's **説明** (description) and **手順** (instructions) fields.
+```json
+{
+  "extraKnownMarketplaces": {
+    "robo-coop-tools": {
+      "source": { "source": "github", "repo": "Robo-Co-op/robobuilder-standard" }
+    }
+  },
+  "enabledPlugins": {
+    "robobuilder@robo-coop-tools": true
+  }
+}
+```
+
+Swap or add `robobuilder-lite@robo-coop-tools` / `robobuilder-pro@robo-coop-tools`
+for the other editions — one marketplace entry serves all three, since the
+`robo-coop-tools` catalog lives in this repo and lists every edition.
+
+Commit the file and everyone working in that repo gets the same setup.
+
+## Option 3: Commit the skills themselves into the repo
+
+If you want a couple of specific skills rather than a whole plugin, a session reads
+`.claude/skills/` (and `.claude/agents/`) straight from the repo:
+
+1. Copy the skill(s) from `skills/<phase>/<name>/SKILL.md` into your project under
+   `.claude/skills/<name>/SKILL.md` (plus `.claude/agents/` for any agents the skill
+   calls).
+2. Commit and merge to the **default branch**. Skills sitting on an unmerged feature
+   branch are invisible to a fresh web session — an open PR is not enough.
+3. Start a new session; the skill shows up with no reload step.
+
+This bypasses the plugin system entirely, so you also lose the hooks and the
+`/robobuilder:*` namespacing — you invoke the skill by its bare name.
+
+## Option 4: Register as an account-level skill
+
+claude.ai's **Customize > Skills > Add > Describe skill instructions** creates a
+skill tied to your account rather than a repo, and it **is** picked up by Claude Code
+web sessions (confirmed 2026-07-18). Useful when you want a skill available across
+every project without touching each repo.
+
+1. Split a `SKILL.md` into the form's **description** and **instructions** fields.
 2. Drop references to `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_SKILL_DIR}`,
-   `bin/robobuilder-*`, and sibling doc files (`LANGUAGE.md`, `AGENT-BRIEF.md`,
-   etc.) — none of those exist outside the plugin, so the standalone skill
-   should be self-contained prose.
-3. If the source `SKILL.md` is large (the textarea has practical limits well
-   under some skills' size, e.g. `ship.md` at 120K+ chars), condense to the
-   essential process/decision-logic/anti-patterns rather than pasting verbatim.
-4. **Name collisions return HTTP 400** ("This skill name is already in use") —
-   this includes reserved words (a name containing the literal word `claude` is
-   rejected) and collisions with any other skill already registered to the
-   account (including a different RoboBuilder edition's same-named skill, e.g.
-   Lite's `ship` vs Standard's `ship`). Rename defensively when this happens
-   (`ship` → `robobuilder-ship`, `tune-claude-md` → `tune-agents-md`, etc.) and
-   keep a note of the renames somewhere your team can find them.
-5. This is a manual, one-skill-at-a-time process — there's no bulk import from a
-   plugin today, so it does not scale as gracefully as Option 1 for a whole
-   edition's worth of skills.
+   `bin/robobuilder-*`, and sibling doc files — none of those exist outside the
+   plugin, so the standalone skill needs to be self-contained prose.
+3. Condense large skills. The form has practical size limits well under some skills'
+   source (e.g. `ship` at 120K+ chars); keep the process, decision logic, and
+   anti-patterns, drop the rest.
+4. **Name collisions return an error** ("This skill name is already in use"). This
+   covers reserved words (a name containing the literal word `claude` is rejected)
+   and collisions with any skill already on the account — including a different
+   edition's same-named skill, e.g. Lite's `ship` vs Standard's `ship`. Rename
+   defensively (`ship` → `robobuilder-ship`, `tune-claude-md` → `tune-agents-md`)
+   and record the renames somewhere your team can find them.
+5. It's manual and one-skill-at-a-time — there's no bulk import, so this doesn't
+   scale to a whole edition the way Options 1–2 do.
 
 ## Which to use
 
-- Working in one repo, want the team on the same skills → Option 1 (commit to
-  the repo).
-- Want a personal skill available across every project you open in Claude Code
-  web → Option 2 (account-level).
-- Either way, `/robobuilder:*`-style slash-command namespacing does not apply
-  outside the plugin system — invoke by the skill's bare name in both cases.
+| Situation | Use |
+|---|---|
+| Desktop app, want the full plugin | Option 1 (plugin browser) |
+| Web/cloud, want the full plugin, team-wide | Option 2 (`settings.json`) |
+| Just a few skills, scoped to one repo | Option 3 (commit skills) |
+| A personal skill across every project | Option 4 (account-level) |
+
+Options 1 and 2 keep hooks, agents, and the `/robobuilder:*` namespace. Options 3
+and 4 give you the skill text only.

@@ -25,15 +25,21 @@ Two-step: add the marketplace, then install the plugin.
 
 After install, run `/reload-plugins` once so skills, agents, and hooks register.
 
-> **Using Claude Code on the web (claude.ai/code)?** The plugin-marketplace flow
-> above assumes a local `~/.claude/plugins/` directory and does not carry over to
-> web sessions. See [CLAUDE_CODE_WEB.md](./CLAUDE_CODE_WEB.md) for the two paths
-> that do work there (committing skills into the repo, or registering them as
-> account-level skills).
+> **`/plugin` is terminal-CLI only.** In the Claude desktop app or on the web you'll
+> get `/plugin isn't available in this environment.` — that's expected. Use the
+> desktop app's plugin browser, or the `.claude/settings.json` route just below.
+> See [CLAUDE_CODE_WEB.md](./CLAUDE_CODE_WEB.md) for all four options.
+>
+> Note that this one `marketplace add` covers **all three editions** — the
+> `robo-coop-tools` catalog lives in this repo and lists Lite, Standard, and Pro.
+> Don't run `marketplace add` against the Lite or Pro repos; they ship a plugin, not
+> a catalog.
 
 ### Team auto-install via project settings
 
-To enroll an entire repo's contributors, add to your project's `.claude/settings.json`:
+This is also **the way to install on web / cloud sessions**, where `/plugin` isn't
+available. To enroll an entire repo's contributors, add to your project's
+`.claude/settings.json`:
 
 ```json
 {
@@ -131,7 +137,8 @@ Generates a scheduled-routine spec at `${ROBOBUILDER_HOME:-$HOME/.robobuilder}/f
 - **`/browse` errors**: check the target project's Playwright/browser tooling and test command; robobuilder does not install separate browser binaries.
 - **Skill collision**: robobuilder uses `/robobuilder:<name>` namespace by default — global `/<name>` still works if you had it before. No collision.
 - **CLAUDE.md merge wrong**: revert with `/robobuilder:tune-claude-md --revert`.
-- **Skills missing on Claude Code web / plugin install has no effect there**: the web runtime doesn't read `~/.claude/plugins/`. See [CLAUDE_CODE_WEB.md](./CLAUDE_CODE_WEB.md).
+- **`/plugin isn't available in this environment.`**: `/plugin` is terminal-CLI only. Use the desktop app's plugin browser, or declare the plugin in `.claude/settings.json`. See [CLAUDE_CODE_WEB.md](./CLAUDE_CODE_WEB.md).
+- **`marketplace add` fails on the Lite or Pro repo**: those repos ship a `plugin.json`, not a `marketplace.json`. Add `Robo-Co-op/robobuilder-standard` once — its `robo-coop-tools` catalog covers all three editions — then `/plugin install robobuilder-lite@robo-coop-tools` (or `-pro`).
 
 ## Updating
 

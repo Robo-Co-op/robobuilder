@@ -74,11 +74,11 @@ See `docs/OPENCLAW_CODEX.md`.
 
 See `docs/CLAUDE_DESKTOP.md` for MCP bridge setup, Projects-based usage, and feature comparison across all versions.
 
-### Claude Code on the web (claude.ai/code)
+### Desktop app & Claude Code on the web
 
-The plugin-marketplace flow above is for the local CLI and doesn't carry over to
-web sessions. See `docs/CLAUDE_CODE_WEB.md` for the two things that do work there:
-committing skills into the repo, or registering them as account-level skills.
+`/plugin` is terminal-CLI only — elsewhere it reports "isn't available in this
+environment". Use the desktop app's plugin browser, or declare the plugin in
+`.claude/settings.json`. See `docs/CLAUDE_CODE_WEB.md`.
 
 ## Quick reference
 
