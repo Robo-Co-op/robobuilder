@@ -12,9 +12,15 @@
       "name": "robobuilder",
       "source": "./",
       "description": "Robo Builder Standard — 41 skills, 9 phase-specific agents, 3 playbooks, harness config, bidirectional Notion learning loop.",
-      "version": "1.4.0",
+      "version": "1.5.0",
       "category": "development",
-      "tags": ["robo-co-op", "workflow", "tdd", "bootcamp", "compounding-engineering"],
+      "tags": [
+        "robo-co-op",
+        "workflow",
+        "tdd",
+        "bootcamp",
+        "compounding-engineering"
+      ],
       "license": "MIT",
       "author": {
         "name": "Robo Co-op",
@@ -29,9 +35,14 @@
         "repo": "Robo-Co-op/robobuilder-lite"
       },
       "description": "Robo Builder Lite — 4 merged mega-skills (plan / build / improve / ship) for beginners, with the same hooks and review agents as Standard.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "category": "development",
-      "tags": ["robo-co-op", "workflow", "beginners", "tdd"],
+      "tags": [
+        "robo-co-op",
+        "workflow",
+        "beginners",
+        "tdd"
+      ],
       "license": "MIT",
       "author": {
         "name": "Robo Co-op",
@@ -48,7 +59,13 @@
       "description": "Robo Builder Pro — Loop and Graph Engineering add-on (install alongside Standard): design, gate, audit, and compound autonomous agent loops on top of native /goal, /loop, /batch, and Routines, then wire them into a graph with typed edges, arbitration, and champion-challenger promotion.",
       "version": "1.2.0",
       "category": "development",
-      "tags": ["robo-co-op", "loop-engineering", "graph-engineering", "autonomy", "compounding-engineering"],
+      "tags": [
+        "robo-co-op",
+        "loop-engineering",
+        "graph-engineering",
+        "autonomy",
+        "compounding-engineering"
+      ],
       "license": "MIT",
       "author": {
         "name": "Robo Co-op",

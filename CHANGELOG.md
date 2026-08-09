@@ -2,6 +2,48 @@
 
 All notable changes to robobuilder.
 
+## [1.5.0] — 2026-08-09
+
+Four scoring and stopping-rule defects, all found by *executing* these skills rather
+than reading them. Eleven rounds of prose review across the three repos found none of
+them, and all four are the same shape: **a measurement that never happened counted as
+a pass.**
+
+### Fixed
+- `health`'s composite could not reach 10. The five weights (tests 28, type check 22,
+  lint 18, dead code 13, shell 9) sum to **90**, so dividing by the raw total capped a
+  clean codebase at 9.0, and "a `SKIPPED` tool redistributes its weight" never said
+  what it redistributes into — one dataset produced three different composites
+  depending on how a reader resolved that. Now
+  `Σ(score × weight for active) ÷ Σ(weight for active)`, with a worked example
+- `ship`'s quality score rose as review coverage fell: a specialist that never ran
+  contributed silence, and silence read as quality. The score now travels with its
+  denominator — `score (N of M specialists)`
+- `ship` Step 12 assumed a `VERSION` file. None of the three robobuilder repos has
+  one, so `ship` could not ship the repo it lives in, and the failure was quiet —
+  computing a bump against a nonexistent base rather than stopping. It now resolves
+  the version file across `VERSION`, `.claude-plugin/plugin.json`, `package.json`,
+  `pyproject.toml`, `Cargo.toml`
+- `cross-review`'s two stopping rules, both disproved by this project's own review
+  history: the "max 5 rounds, beyond that it diverges" cap would have shipped four
+  real defects found in rounds 6-9, and "the same finding in 3+ rounds is a false
+  positive" would have dismissed six consecutive genuine findings. The cap now keys on
+  whether a round surfaced anything *new*, and the heuristic distinguishes the same
+  *finding* recurring from the same *area* yielding new defects
+
+### Added
+- Test: any skill that aggregates per-item measurements must state what it divides by
+  and what happens to an input it could not measure. The registry is closed, so a new
+  scoring skill fails until someone answers both
+- Test: `plugin.json`'s version must match the CHANGELOG's newest entry. Ported from
+  Pro, which was the only repo whose version was correct — because it alone had this
+- CI: the suite runs on push and pull request instead of only by hand
+
+### Changed
+- `marketplace.json` catches up the Pro entry (pinned at 1.0.0, stale since Pro tagged
+  1.1.0) to 1.2.0 for the L5 graph layer, and Lite to 1.1.0
+- README: the Pro row and the loop-stack line cover L5, the graph of loops above L3/L4
+
 ## [1.4.0] — 2026-07-03
 
 Three-editions release. This repo is now **Robo Builder Standard**.
