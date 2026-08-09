@@ -2,6 +2,35 @@
 
 All notable changes to robobuilder.
 
+## [1.5.1] — 2026-08-09
+
+Three unreachable audits, found by executing the skills' control flow rather than
+reading it. A skill written as "Step 1 … Step 20" is a program and its forward jumps
+are gotos; nothing checked where they landed.
+
+### Fixed
+- `ship` Step 6 sent both of its exits to Step 9, skipping the test coverage audit,
+  the plan completion audit, plan verification and scope drift detection — roughly 450
+  lines. The exit that fires is "no prompt-related files changed", which is the path
+  every repo takes except the one Rails codebase Step 6 was written against. Step 6 is
+  now labelled project-specific and hands off to Step 7
+- `ship` Steps 9.3 and 10 sent three exits to Step 12, skipping Step 11 — titled
+  "Adversarial review (always-on)" and opening "Every diff gets adversarial review".
+  The exits that fire are "no issues found" and "no review comments", so the review
+  was skipped exactly when nothing else had looked
+- `land-and-deploy` sent both CI outcomes to Step 4 (Merge the PR), skipping Steps 3.4
+  and 3.5. Step 3.5 is the pre-merge readiness gate — "the critical safety check before
+  an irreversible merge" — and was unreachable on every path
+- `land-and-deploy` Step 3.4 compared two empty strings when the repo has no `VERSION`
+  file, which reads as "no drift" having measured nothing. It now reports n/a and
+  resolves the version file the way `ship` Step 12 does
+
+### Added
+- Test: a forward jump that skips a section fails the suite unless the skip is in an
+  allowlist with a written reason. A stale allowlist entry fails too — one matching no
+  live jump would hide the next real skip. Ported to Pro and Lite, where it passes with
+  an empty allowlist: neither has a section-skipping jump
+
 ## [1.5.0] — 2026-08-09
 
 Four scoring and stopping-rule defects, all found by *executing* these skills rather
