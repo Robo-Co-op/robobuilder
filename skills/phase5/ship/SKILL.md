@@ -3,7 +3,7 @@ name: ship
 preamble-tier: 4
 version: 1.0.0
 description: |
-  [P5-1 Ship] Ship workflow: detect + merge base branch, run tests, review diff, bump VERSION,
+  [P5-1 Ship] Ship workflow: detect + merge base branch, run tests, review diff, bump the version,
   update CHANGELOG, commit, push, create PR. Use when asked to "ship", "deploy",
   "push to main", "create a PR", "merge and push", or "get it deployed".
   Proactively invoke this skill (do NOT push/PR directly) when the user says code
@@ -1749,7 +1749,23 @@ already knows. A good test: would this insight save time in a future session? If
 
 ## Step 12: Version bump (auto-decide)
 
-**Idempotency check:** Before bumping, classify the state by comparing `VERSION` against the base branch AND against `package.json`'s `version` field. Four states: FRESH (do bump), ALREADY_BUMPED (skip bump), DRIFT_STALE_PKG (sync pkg only, no re-bump), DRIFT_UNEXPECTED (stop and ask).
+**Find the version file first.** This step assumes a `VERSION` file, and plenty of repos
+don't have one — all three robobuilder repos keep their version in
+`.claude-plugin/plugin.json`, so the snippet below silently falls back to `0.0.0.0` and
+computes a bump from the wrong base. Resolve `$VERSION_FILE` before anything else:
+
+```bash
+for f in VERSION .claude-plugin/plugin.json package.json pyproject.toml Cargo.toml; do
+  [ -f "$f" ] && VERSION_FILE="$f" && break
+done
+[ -z "$VERSION_FILE" ] && echo "No version file found — skipping the bump." 
+```
+
+For a JSON/TOML file, read and write the `version` field rather than the whole file. If
+nothing is found, say so and skip the bump; never create a `VERSION` file a repo has
+deliberately not got.
+
+**Idempotency check:** Before bumping, classify the state by comparing the version against the base branch AND against `package.json`'s `version` field where one exists. Four states: FRESH (do bump), ALREADY_BUMPED (skip bump), DRIFT_STALE_PKG (sync pkg only, no re-bump), DRIFT_UNEXPECTED (stop and ask).
 
 ```bash
 if ! git rev-parse --verify origin/<base> >/dev/null 2>&1; then
@@ -1757,8 +1773,8 @@ if ! git rev-parse --verify origin/<base> >/dev/null 2>&1; then
   exit 1
 fi
 
-BASE_VERSION=$(git show origin/<base>:VERSION 2>/dev/null | tr -d '\r\n[:space:]' || echo "0.0.0.0")
-CURRENT_VERSION=$(cat VERSION 2>/dev/null | tr -d '\r\n[:space:]' || echo "0.0.0.0")
+BASE_VERSION=$(git show "origin/<base>:$VERSION_FILE" 2>/dev/null | tr -d '\r\n[:space:]' || echo "0.0.0.0")
+CURRENT_VERSION=$(cat "$VERSION_FILE" 2>/dev/null | tr -d '\r\n[:space:]' || echo "0.0.0.0")
 [ -z "$BASE_VERSION" ] && BASE_VERSION="0.0.0.0"
 [ -z "$CURRENT_VERSION" ] && CURRENT_VERSION="0.0.0.0"
 PKG_VERSION=""
