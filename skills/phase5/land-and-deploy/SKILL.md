@@ -402,7 +402,7 @@ gh pr checks --json name,state,status,conclusion
 Parse the output:
 1. If any required checks are **FAILING**: **STOP.** "CI is failing on this PR. Here are the failing checks: {list}. Fix these before deploying — I won't merge code that hasn't passed CI."
 2. If required checks are **PENDING**: Tell the user "CI is still running. I'll wait for it to finish." Proceed to Step 3.
-3. If all checks pass (or no required checks): Tell the user "CI passed." Skip Step 3, go to Step 4.
+3. If all checks pass (or no required checks): Tell the user "CI passed." Skip Step 3 — there is nothing to wait for — and go to **Step 3.4**. Green CI is not a substitute for the VERSION-drift check and the pre-merge readiness gate that follow it; the merge itself stays behind them.
 
 Also check for merge conflicts:
 ```bash
@@ -422,7 +422,7 @@ gh pr checks --watch --fail-fast
 
 Record the CI wait time for the deploy report.
 
-If CI passes within the timeout: Tell the user "CI passed after {duration}. Moving to readiness checks." Continue to Step 4.
+If CI passes within the timeout: Tell the user "CI passed after {duration}. Moving to readiness checks." Continue to **Step 3.4** — the readiness checks that sentence promises are Steps 3.4 and 3.5, not Step 4.
 If CI fails: **STOP.** "CI failed. Here's what broke: {failures}. This needs to pass before I can merge."
 If timeout (15 min): **STOP.** "CI has been running for over 15 minutes — that's unusual. Check the GitHub Actions tab to see if something is stuck."
 
@@ -451,7 +451,15 @@ OFFLINE=$(echo "$QUEUE_JSON" | jq -r '.offline // false')
 
 Behavior:
 
-1. If `OFFLINE=true` or the util fails: print `⚠ VERSION drift check unavailable (util offline) — proceeding with PR version v<BRANCH_VERSION>`. Continue to Step 3.5. CI's version-gate job is the backstop.
+0. **If the repo has no `VERSION` file**, `BRANCH_VERSION` and `BASE_VERSION` are both
+   empty and every comparison below is between two empty strings — which reads as "no
+   drift" while having measured nothing. Say so instead: print
+   `VERSION drift check n/a — this repo keeps its version in <file>, or has none` and
+   continue to Step 3.5. Resolve the version file the same way `/ship` Step 12 does
+   (`VERSION`, `.claude-plugin/plugin.json`, `package.json`, `pyproject.toml`,
+   `Cargo.toml`) and use it if one is found. An absent measurement is not a passed check.
+
+1. If `OFFLINE=true` or the util fails: print `⚠ VERSION drift check unavailable (util offline) — proceeding with PR version v<BRANCH_VERSION>`. Continue to Step 3.5. CI's version-gate job is the backstop where one exists — if the repo has no version-gate job, say that too, so the warning isn't read as "something else will catch it."
 
 2. If `BRANCH_VERSION` is already `>=` than `NEXT_SLOT`: no drift (or our PR is ahead of the queue). Continue.
 
