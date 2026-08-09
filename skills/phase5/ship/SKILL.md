@@ -1411,7 +1411,17 @@ Group findings by fingerprint. For findings sharing the same fingerprint:
 **Compute PR Quality Score:**
 After merging, compute the quality score:
 `quality_score = max(0, 10 - (critical_count * 2 + informational_count * 0.5))`
-Cap at 10. Log this in the review result at the end.
+
+**Always report it as `score (N of M specialists)`**, and log both counts. The number
+alone is not comparable across runs: adaptive gating drops specialists that have found
+nothing in 10+ dispatches, so a 10 from two `[NEVER_GATE]` specialists and a 10 from
+eight are indistinguishable once written down. Since the log feeds trend tracking, a
+bare score drifts *upward* exactly as review coverage drifts down — the metric moves
+the wrong way as the thing it measures gets thinner. Silence from a specialist that
+never ran is not evidence of quality.
+
+(The formula subtracts from 10 and floors at 0, so it cannot exceed 10 — no separate
+cap is needed.)
 
 **Output merged findings:**
 Present the merged findings in the same format as the current review:
