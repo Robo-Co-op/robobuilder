@@ -3,7 +3,7 @@ name: ship
 preamble-tier: 4
 version: 1.0.0
 description: |
-  [P5-1 Ship] Ship workflow: detect + merge base branch, run tests, review diff, bump VERSION,
+  [P5-1 Ship] Ship workflow: detect + merge base branch, run tests, review diff, bump the version,
   update CHANGELOG, commit, push, create PR. Use when asked to "ship", "deploy",
   "push to main", "create a PR", "merge and push", or "get it deployed".
   Proactively invoke this skill (do NOT push/PR directly) when the user says code
@@ -1411,7 +1411,17 @@ Group findings by fingerprint. For findings sharing the same fingerprint:
 **Compute PR Quality Score:**
 After merging, compute the quality score:
 `quality_score = max(0, 10 - (critical_count * 2 + informational_count * 0.5))`
-Cap at 10. Log this in the review result at the end.
+
+**Always report it as `score (N of M specialists)`**, and log both counts. The number
+alone is not comparable across runs: adaptive gating drops specialists that have found
+nothing in 10+ dispatches, so a 10 from two `[NEVER_GATE]` specialists and a 10 from
+eight are indistinguishable once written down. Since the log feeds trend tracking, a
+bare score drifts *upward* exactly as review coverage drifts down — the metric moves
+the wrong way as the thing it measures gets thinner. Silence from a specialist that
+never ran is not evidence of quality.
+
+(The formula subtracts from 10 and floors at 0, so it cannot exceed 10 — no separate
+cap is needed.)
 
 **Output merged findings:**
 Present the merged findings in the same format as the current review:
@@ -1739,7 +1749,23 @@ already knows. A good test: would this insight save time in a future session? If
 
 ## Step 12: Version bump (auto-decide)
 
-**Idempotency check:** Before bumping, classify the state by comparing `VERSION` against the base branch AND against `package.json`'s `version` field. Four states: FRESH (do bump), ALREADY_BUMPED (skip bump), DRIFT_STALE_PKG (sync pkg only, no re-bump), DRIFT_UNEXPECTED (stop and ask).
+**Find the version file first.** This step assumes a `VERSION` file, and plenty of repos
+don't have one — all three robobuilder repos keep their version in
+`.claude-plugin/plugin.json`, so the snippet below silently falls back to `0.0.0.0` and
+computes a bump from the wrong base. Resolve `$VERSION_FILE` before anything else:
+
+```bash
+for f in VERSION .claude-plugin/plugin.json package.json pyproject.toml Cargo.toml; do
+  [ -f "$f" ] && VERSION_FILE="$f" && break
+done
+[ -z "$VERSION_FILE" ] && echo "No version file found — skipping the bump." 
+```
+
+For a JSON/TOML file, read and write the `version` field rather than the whole file. If
+nothing is found, say so and skip the bump; never create a `VERSION` file a repo has
+deliberately not got.
+
+**Idempotency check:** Before bumping, classify the state by comparing the version against the base branch AND against `package.json`'s `version` field where one exists. Four states: FRESH (do bump), ALREADY_BUMPED (skip bump), DRIFT_STALE_PKG (sync pkg only, no re-bump), DRIFT_UNEXPECTED (stop and ask).
 
 ```bash
 if ! git rev-parse --verify origin/<base> >/dev/null 2>&1; then
@@ -1747,8 +1773,8 @@ if ! git rev-parse --verify origin/<base> >/dev/null 2>&1; then
   exit 1
 fi
 
-BASE_VERSION=$(git show origin/<base>:VERSION 2>/dev/null | tr -d '\r\n[:space:]' || echo "0.0.0.0")
-CURRENT_VERSION=$(cat VERSION 2>/dev/null | tr -d '\r\n[:space:]' || echo "0.0.0.0")
+BASE_VERSION=$(git show "origin/<base>:$VERSION_FILE" 2>/dev/null | tr -d '\r\n[:space:]' || echo "0.0.0.0")
+CURRENT_VERSION=$(cat "$VERSION_FILE" 2>/dev/null | tr -d '\r\n[:space:]' || echo "0.0.0.0")
 [ -z "$BASE_VERSION" ] && BASE_VERSION="0.0.0.0"
 [ -z "$CURRENT_VERSION" ] && CURRENT_VERSION="0.0.0.0"
 PKG_VERSION=""

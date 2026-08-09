@@ -1,6 +1,6 @@
 ---
 name: cross-review
-description: "[P4-2 Review] AI cross-review — multi-round parallel review with 4 perspectives that keeps iterating until zero findings (0 critical + 0 medium for 2 consecutive rounds, max 5 rounds). Expensive; use only before important merges"
+description: "[P4-2 Review] AI cross-review — multi-round parallel review with 4 perspectives that keeps iterating until zero findings (0 critical + 0 medium for 2 consecutive rounds; stop when rounds stop surfacing new defects, typically around five). Expensive; use only before important merges"
 user-invocable: true
 argument-hint: "[target branch/commit range]"
 allowed-tools:
@@ -45,7 +45,11 @@ Aggregate the agents' outputs:
 
 ### Exit condition
 - 0 critical AND 0 medium findings for **2 consecutive rounds**
-- Or cut off at a maximum of 5 rounds (beyond that it diverges)
+- Or cut off once rounds stop *earning* their cost. Five is the usual place that
+  happens, but it is a prompt to check, not a hard stop: keep going while each round
+  still surfaces **new** defects, and stop when a round repeats the previous one's
+  findings without adding any. Divergence is rounds producing the same output, not
+  rounds producing a high number.
 
 ## Output (after the final round)
 ```
@@ -61,7 +65,12 @@ Aggregate the agents' outputs:
 
 ## Notes
 - Do **not** treat round count or finding count as KPIs. Fewer is better
-- If the same finding persists for 3+ rounds, suspect a reviewer-side false positive
+- If **the same finding** persists for 3+ rounds, suspect a reviewer-side false
+  positive. But distinguish that from **the same area** producing a *different* real
+  defect each round — that is the opposite signal, and means the area is genuinely
+  hard and deserves more attention, not less. Check which one you have before
+  dismissing anything: re-read the actual findings side by side rather than pattern-
+  matching on the topic.
 - This skill is expensive. Use it only before important merges
 
 $ARGUMENTS

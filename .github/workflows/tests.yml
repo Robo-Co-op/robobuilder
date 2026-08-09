@@ -1,0 +1,25 @@
+name: tests
+
+# The three robobuilder repos ship prompt content, not a runtime, so the
+# pytest suites are the only automated signal there is. Until this workflow
+# existed they ran only when someone remembered to run them.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pytest
+      - run: python -m pytest scripts/tests/ -q
+      - name: Validate the plugin manifest
+        run: |
+          python -m json.tool .claude-plugin/marketplace.json > /dev/null
+          python -m json.tool .claude-plugin/plugin.json > /dev/null

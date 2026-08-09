@@ -151,18 +151,28 @@ Score each category on a 0-10 scale using this rubric:
 - **knip:** Count lines reporting unused exports, files, or dependencies.
 - **shellcheck:** Count distinct findings (lines starting with "In ... line").
 
-**Composite score:**
-```
-composite = (typecheck_score * 0.22) + (lint_score * 0.18) + (test_score * 0.28) + (deadcode_score * 0.13) + (shell_score * 0.09)
-```
-
-is not installed), redistribute its weight proportionally among the
-remaining categories.
-
+**Composite score:** divide by the weights that actually ran, not by 1.0.
 
 ```
+active     = the categories that ran (a SKIPPED tool is not active)
+composite  = Σ(score × weight for active) ÷ Σ(weight for active)
 ```
 
+The five weights sum to **0.90**, not 1.0, so multiplying them out and stopping there
+caps a perfectly clean codebase at 9.0 and reports a problem that isn't there. Dividing
+by the active weights fixes that and makes the skip rule fall out for free — a skipped
+tool is simply absent from both sums, which *is* proportional redistribution.
+
+Worked example — tests 10, type check 7, lint 4, dead code and shell both SKIPPED:
+
+```
+numerator   = 10(0.28) + 7(0.22) + 4(0.18) = 5.06
+denominator = 0.28 + 0.22 + 0.18           = 0.68
+composite   = 5.06 / 0.68                  = 7.4
+```
+
+That also answers skipped tools: one that didn't run is simply absent from both sums,
+which *is* the proportional redistribution — there is no separate step.
 
 ---
 
