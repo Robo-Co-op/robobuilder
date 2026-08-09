@@ -36,7 +36,11 @@ SKILLS_DIR = Path(__file__).resolve().parents[2] / "skills"
 SCORING_SIGNATURE = re.compile(r"(composite|Σ\(|quality[_ ]score|overall score)", re.IGNORECASE)
 
 STATES_DENOMINATOR = re.compile(
-    r"(÷|divid(?:e|ed|ing) by|number of \w+ scored|\bN of M\b|that actually ran)",
+    # Deliberately narrow: it must name a division, not merely describe which
+    # inputs counted. "the categories that actually ran" states the skip rule,
+    # not the denominator, and letting it satisfy both is how a falsification
+    # run found this test passing a rubric whose divisor had been removed.
+    r"(÷|divid(?:e|ed|ing) by|number of \w+ scored|\bN of M\b)",
     re.IGNORECASE,
 )
 
