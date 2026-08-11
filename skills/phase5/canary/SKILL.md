@@ -30,8 +30,6 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 > - **Bootcamp**: M3.code.ship
 > - **Origin**: Garry Tan upstream, adapted for RoboBuilder
 
-<!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
-<!-- Regenerate: bun run gen:skill-docs -->
 
 ## RoboBuilder Runtime Notes
 
@@ -108,6 +106,11 @@ When the user types `/canary`, run this skill.
 - `/canary <url> --quick` — single-pass health check (no continuous monitoring)
 
 ## Instructions
+
+**Flags, and where they take effect.** `--baseline` runs Phase 2 only. `--pages` replaces
+the default page list. **`--quick` runs one pass and stops** — do Phases 1-4, report, and
+skip Phase 5's monitoring loop entirely. Without this the loop runs unconditionally and a
+user who asked for a single health check waits for a watch that was never wanted.
 
 ### Phase 1: Setup
 
@@ -207,7 +210,11 @@ After each check, compare results against the baseline (or pre-deploy snapshot):
 1. **Page load failure** — `goto` returns error or timeout → CRITICAL ALERT
 2. **New console errors** — errors not present in baseline → HIGH ALERT
 3. **Performance regression** — load time exceeds 2x baseline → MEDIUM ALERT
-4. **Broken links** — new 404s not in baseline → LOW ALERT
+4. **Broken links** — new 404s not in baseline → LOW ALERT. **Only if Phase 2 actually
+   captured links.** Baseline capture takes screenshots and console output; it does not
+   run a link crawl, so unless you added one there is no baseline to diff against and
+   this criterion has no subject. Say "links: not baselined" rather than reporting zero
+   broken links, which reads as a clean result.
 
 **Alert on changes, not absolutes.** A page with 3 console errors in the baseline is fine if it still has 3. One NEW error is an alert.
 
@@ -269,7 +276,16 @@ RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/b
 eval "$("$RB/robobuilder-slug" 2>/dev/null)"
 eval "$("$RB/robobuilder-paths")"
 mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
+"$RB/robobuilder-review-log" '{"skill":"canary","timestamp":"TIMESTAMP","status":"STATUS","url":"URL","checks":N,"alerts":M,"commit":"'"$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"'"}'
 ```
+
+Substitute: TIMESTAMP = ISO 8601 datetime, STATUS = "healthy" / "alerts" / "critical",
+URL = the monitored URL, N = checks run, M = alerts raised. The payload is a single JSON
+argument, matching how `/robobuilder:ship` logs its own records.
+
+The `mkdir` alone used to be the whole step: it created the directory and wrote nothing
+into it, so canary results never reached the review dashboard `/robobuilder:ship` reads —
+and an empty dashboard is indistinguishable from a deploy that was never canaried.
 
 Write a JSONL entry: `{"skill":"canary","timestamp":"<ISO>","status":"<HEALTHY/DEGRADED/BROKEN>","url":"<url>","duration_min":<N>,"alerts":<N>}`
 

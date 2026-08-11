@@ -64,8 +64,9 @@ eval "$("$RB/robobuilder-slug" 2>/dev/null)"
 ```
 
 Present the output in a readable format. If no learnings exist, tell the user:
-"No learnings recorded yet. As you use /review, /ship, /investigate, and other skills,
-RoboBuilder can capture patterns, pitfalls, and insights it discovers."
+"No learnings recorded yet. As you use `/robobuilder:diff-review`, `/robobuilder:ship`,
+`/robobuilder:diagnose` and other skills, RoboBuilder can capture patterns, pitfalls and
+insights it discovers."
 
 ---
 
@@ -99,9 +100,18 @@ For each learning in the output:
    files still exist in the repo using Glob. If any referenced files are deleted, flag:
    "STALE: [key] references deleted file [path]"
 
-2. **Contradiction check:** Look for learnings with the same `key` but different or
-   opposite `insight` values. Flag: "CONFLICT: [key] has contradicting entries —
-   [insight A] vs [insight B]"
+2. **Contradiction check:** Look for learnings with the same `key` **and the same
+   `type`** but opposite `insight` values.
+
+   Note what this cannot distinguish on its own: "same key, different insight" is also
+   the exact shape of a legitimate *update*, which this skill prescribes elsewhere. The
+   log is append-only, so the later entry is the current one. Only flag a conflict when
+   both entries are still being asserted — i.e. when they differ in `type` or `source`
+   and neither supersedes the other. When they are the same key and type, treat the
+   later one as the update it is and offer to prune the earlier, not to resolve a
+   contradiction that does not exist.
+
+   Flag: "CONFLICT: [key] has contradicting entries — [insight A] vs [insight B]"
 
 Present each flagged entry via AskUserQuestion:
 - A) Remove this learning
@@ -158,7 +168,9 @@ RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/b
 eval "$("$RB/robobuilder-slug" 2>/dev/null)"
 eval "$("$RB/robobuilder-paths")"
 LEARN_FILE="$ROBOBUILDER_STATE_ROOT/projects/$SLUG/learnings.jsonl"
-if [ -f "$LEARN_FILE" ]; then
+# -s not -f: the log is created empty on first write, and an empty file must not
+# report "TOTAL: 0" as if 0 were a measurement.
+if [ -s "$LEARN_FILE" ]; then
   TOTAL=$(wc -l < "$LEARN_FILE" | tr -d ' ')
   echo "TOTAL: $TOTAL entries"
   # Count by type (after dedup)
@@ -188,7 +200,9 @@ if [ -f "$LEARN_FILE" ]; then
     console.log('RAW_ENTRIES: ' + lines.length);
     console.log('BY_TYPE: ' + JSON.stringify(byType));
     console.log('BY_SOURCE: ' + JSON.stringify(bySource));
-    console.log('AVG_CONFIDENCE: ' + (totalConf / seen.size).toFixed(1));
+    // seen.size is 0 when every line failed to parse -- 0/0 is NaN, and
+    // 'AVG_CONFIDENCE: NaN' reads as a measured result rather than as no data.
+    console.log('AVG_CONFIDENCE: ' + (seen.size ? (totalConf / seen.size).toFixed(1) : 'n/a (no parseable entries)'));
   " 2>/dev/null
 else
   echo "NO_LEARNINGS"
