@@ -40,7 +40,7 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 
 ## RoboBuilder Runtime Notes
 
-Use `bin/robobuilder-paths` and `bin/robobuilder-slug` for project state. Full contract: `docs/RUNTIME.md`.
+Use `"$RB/robobuilder-paths"` and `"$RB/robobuilder-slug"` for project state. Full contract: `docs/RUNTIME.md`.
 
 ## Step 0: Detect platform and base branch
 
@@ -137,7 +137,9 @@ Never skip a verification step because a prior `/ship` run already performed it.
 After completing the review, read the review log and config to display the dashboard.
 
 ```bash
-bin/robobuilder-review-read
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-read"
 ```
 
 Parse the output. Find the most recent entry for each skill (plan-ceo-review, plan-eng-review, review, plan-design-review, design-review-lite, adversarial-review, codex-review, codex-plan-review). Ignore entries with timestamps older than 7 days. For the Eng Review row, show whichever is more recent between `review` (diff-scoped pre-landing review) and `plan-eng-review` (plan-stage architecture review). Append "(DIFF)" or "(PLAN)" to the status to distinguish. For the Adversarial row, show whichever is more recent between `adversarial-review` (new auto-scaled) and `codex-review` (legacy). For Design Review, show whichever is more recent between `plan-design-review` (full visual audit) and `design-review-lite` (code-level check). Append "(FULL)" or "(LITE)" to the status to distinguish. For the Outside Voice row, show the most recent `codex-plan-review` entry — this captures outside voices from both /plan-ceo-review and /plan-eng-review.
@@ -165,7 +167,7 @@ Display:
 ```
 
 **Review tiers:**
-- **Eng Review (required by default):** The only review that gates shipping. Covers architecture, code quality, tests, performance. Can be disabled globally with \`bin/robobuilder-config set skip_eng_review true\` (the "don't bother me" setting).
+- **Eng Review (required by default):** The only review that gates shipping. Covers architecture, code quality, tests, performance. Can be disabled globally with \`"$RB/robobuilder-config" set skip_eng_review true\` (the "don't bother me" setting).
 - **CEO Review (optional):** Use your judgment. Recommend it for big product/business changes, new user-facing features, or scope decisions. Skip for bug fixes, refactors, infra, and cleanup.
 - **Design Review (optional):** Use your judgment. Recommend it for UI/UX changes. Skip for backend-only, infra, or prompt-only changes.
 - **Adversarial Review (automatic):** Always-on for every review. Every diff gets both Claude adversarial subagent and Codex adversarial challenge. Large diffs (200+ lines) additionally get Codex structured review with P1 gate. No configuration needed.
@@ -191,7 +193,7 @@ Check diff size: `git diff <base>...HEAD --stat | tail -1`. If the diff is >200 
 
 If CEO Review is missing, mention as informational ("CEO Review not run — recommended for product changes") but do NOT block.
 
-For Design Review: run `source <(bin/robobuilder-diff-scope <base> 2>/dev/null)`. If `SCOPE_FRONTEND=true` and no design review (plan-design-review or design-review-lite) exists in the dashboard, mention: "Design Review not run — this PR changes frontend code. The lite design check will run automatically in Step 9, but consider running /design-review for a full visual audit post-implementation." Still never block.
+For Design Review: run `source <("$RB/robobuilder-diff-scope" <base> 2>/dev/null)`. If `SCOPE_FRONTEND=true` and no design review (plan-design-review or design-review-lite) exists in the dashboard, mention: "Design Review not run — this PR changes frontend code. The lite design check will run automatically in Step 9, but consider running /design-review for a full visual audit post-implementation." Still never block.
 
 Continue to Step 2 — do NOT block or ask. Ship runs its own review in Step 9.
 
@@ -811,8 +813,10 @@ Using the coverage percentage from the diagram in substep 4 (the `COVERAGE: X/Y 
 After producing the coverage diagram, write a test plan artifact so `/qa` and `/qa-only` can consume it:
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 USER=$(whoami)
 DATETIME=$(date +%Y%m%d-%H%M%S)
@@ -868,8 +872,10 @@ Repo: {owner/repo}
 2. **Content-based search (fallback):** If no plan file is referenced in conversation context, search by content:
 
 ```bash
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
 setopt +o nomatch 2>/dev/null || true  # zsh compat
-eval "$(bin/robobuilder-paths)"
+eval "$("$RB/robobuilder-paths")"
 BRANCH=$(git branch --show-current 2>/dev/null | tr '/' '-')
 REPO=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")
 # Compute project slug for RoboBuilder state lookup
@@ -1105,12 +1111,14 @@ Add a `## Verification Results` section to the PR body (Step 19):
 Search for relevant learnings from previous sessions:
 
 ```bash
-_CROSS_PROJ=$(bin/robobuilder-config get cross_project_learnings 2>/dev/null || echo "unset")
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+_CROSS_PROJ=$("$RB/robobuilder-config" get cross_project_learnings 2>/dev/null || echo "unset")
 echo "CROSS_PROJECT: $_CROSS_PROJ"
 if [ "$_CROSS_PROJ" = "true" ]; then
-  bin/robobuilder-learnings-search --limit 10 --cross-project 2>/dev/null || true
+  "$RB/robobuilder-learnings-search" --limit 10 --cross-project 2>/dev/null || true
 else
-  bin/robobuilder-learnings-search --limit 10 2>/dev/null || true
+  "$RB/robobuilder-learnings-search" --limit 10 2>/dev/null || true
 fi
 ```
 
@@ -1125,8 +1133,8 @@ Options:
 - A) Enable cross-project learnings (recommended)
 - B) Keep learnings project-scoped only
 
-If A: run `bin/robobuilder-config set cross_project_learnings true`
-If B: run `bin/robobuilder-config set cross_project_learnings false`
+If A: run `"$RB/robobuilder-config" set cross_project_learnings true`
+If B: run `"$RB/robobuilder-config" set cross_project_learnings false`
 
 Then re-run the search with the appropriate flag.
 
@@ -1217,7 +1225,9 @@ higher confidence.
 Check if the diff touches frontend files using `robobuilder-diff-scope`:
 
 ```bash
-source <(bin/robobuilder-diff-scope <base> 2>/dev/null)
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+source <("$RB/robobuilder-diff-scope" <base> 2>/dev/null)
 ```
 
 **If `SCOPE_FRONTEND=false`:** Skip design review silently. No output.
@@ -1240,7 +1250,9 @@ source <(bin/robobuilder-diff-scope <base> 2>/dev/null)
 6. **Log the result** for the Review Readiness Dashboard:
 
 ```bash
-bin/robobuilder-review-log '{"skill":"design-review-lite","timestamp":"TIMESTAMP","status":"STATUS","findings":N,"auto_fixed":M,"commit":"COMMIT"}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-log" '{"skill":"design-review-lite","timestamp":"TIMESTAMP","status":"STATUS","findings":N,"auto_fixed":M,"commit":"COMMIT"}'
 ```
 
 Substitute: TIMESTAMP = ISO 8601 datetime, STATUS = "clean" if 0 findings or "issues_found", N = total findings, M = auto-fixed count, COMMIT = output of `git rev-parse --short HEAD`.
@@ -1275,7 +1287,9 @@ Present Codex output under a `CODEX (design):` header, merged with the checklist
 ### Detect stack and scope
 
 ```bash
-source <(bin/robobuilder-diff-scope <base> 2>/dev/null) || true
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+source <("$RB/robobuilder-diff-scope" <base> 2>/dev/null) || true
 # Detect stack for specialist context
 STACK=""
 [ -f Gemfile ] && STACK="${STACK}ruby "
@@ -1301,7 +1315,9 @@ echo "TEST_FW: ${TEST_FW:-unknown}"
 ### Read specialist hit rates (adaptive gating)
 
 ```bash
-bin/robobuilder-specialist-stats 2>/dev/null || true
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-specialist-stats" 2>/dev/null || true
 ```
 
 ### Select specialists
@@ -1351,7 +1367,9 @@ Construct the prompt for each specialist. The prompt includes:
 3. Past learnings for this domain (if any exist):
 
 ```bash
-bin/robobuilder-learnings-search --type pitfall --query "{specialist domain}" --limit 5 2>/dev/null || true
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-learnings-search" --type pitfall --query "{specialist domain}" --limit 5 2>/dev/null || true
 ```
 
 If learnings are found, include them: "Past learnings for this domain: {learnings}"
@@ -1488,7 +1506,9 @@ If the Red Team subagent fails or times out, skip silently and continue.
 Before classifying findings, check if any were previously skipped by the user in a prior review on this branch.
 
 ```bash
-bin/robobuilder-review-read
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-read"
 ```
 
 Parse the output: only lines BEFORE `---CONFIG---` are JSONL entries (the output also contains `---CONFIG---` and `---HEAD---` footer sections that are not JSONL — ignore those).
@@ -1539,7 +1559,9 @@ Output a summary header: `Pre-Landing Review: N issues (X critical, Y informatio
 
 9. Persist the review result to the review log:
 ```bash
-bin/robobuilder-review-log '{"skill":"review","timestamp":"TIMESTAMP","status":"STATUS","issues_found":N,"critical":N,"informational":N,"quality_score":SCORE,"specialists":SPECIALISTS_JSON,"findings":FINDINGS_JSON,"commit":"'"$(git rev-parse --short HEAD)"'","via":"ship"}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-log" '{"skill":"review","timestamp":"TIMESTAMP","status":"STATUS","issues_found":N,"critical":N,"informational":N,"quality_score":SCORE,"specialists":SPECIALISTS_JSON,"findings":FINDINGS_JSON,"commit":"'"$(git rev-parse --short HEAD)"'","via":"ship"}'
 ```
 Substitute TIMESTAMP (ISO 8601), STATUS ("clean" if no issues, "issues_found" otherwise),
 and N values from the summary counts above. The `via:"ship"` distinguishes from standalone `/review` runs.
@@ -1608,12 +1630,14 @@ Every diff gets adversarial review from both Claude and Codex. LOC is not a prox
 **Detect diff size and tool availability:**
 
 ```bash
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
 DIFF_INS=$(git diff origin/<base> --stat | tail -1 | grep -oE '[0-9]+ insertion' | grep -oE '[0-9]+' || echo "0")
 DIFF_DEL=$(git diff origin/<base> --stat | tail -1 | grep -oE '[0-9]+ deletion' | grep -oE '[0-9]+' || echo "0")
 DIFF_TOTAL=$((DIFF_INS + DIFF_DEL))
 which codex 2>/dev/null && echo "CODEX_AVAILABLE" || echo "CODEX_NOT_AVAILABLE"
 # Legacy opt-out — only gates Codex passes, Claude always runs
-OLD_CFG=$(bin/robobuilder-config get codex_reviews 2>/dev/null || true)
+OLD_CFG=$("$RB/robobuilder-config" get codex_reviews 2>/dev/null || true)
 echo "DIFF_SIZE: $DIFF_TOTAL"
 echo "OLD_CFG: ${OLD_CFG:-not_set}"
 ```
@@ -1701,7 +1725,9 @@ If `DIFF_TOTAL < 200`: skip this section silently. The Claude + Codex adversaria
 
 After all passes complete, persist:
 ```bash
-bin/robobuilder-review-log '{"skill":"adversarial-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","tier":"always","gate":"GATE","commit":"'"$(git rev-parse --short HEAD)"'"}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-log" '{"skill":"adversarial-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","tier":"always","gate":"GATE","commit":"'"$(git rev-parse --short HEAD)"'"}'
 ```
 Substitute: STATUS = "clean" if no findings across ALL passes, "issues_found" if any pass found issues. SOURCE = "both" if Codex ran, "claude" if only Claude subagent ran. GATE = the Codex structured review gate result ("pass"/"fail"), "skipped" if diff < 200, or "informational" if Codex was unavailable. If all passes failed, do NOT persist.
 
@@ -1732,7 +1758,9 @@ If you discovered a non-obvious pattern, pitfall, or architectural insight durin
 this session, log it for future sessions:
 
 ```bash
-bin/robobuilder-learnings-log '{"skill":"ship","type":"TYPE","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"SOURCE","files":["path/to/relevant/file"]}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-learnings-log" '{"skill":"ship","type":"TYPE","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"SOURCE","files":["path/to/relevant/file"]}'
 ```
 
 **Types:** `pattern` (reusable approach), `pitfall` (what NOT to do), `preference`
@@ -1824,7 +1852,7 @@ fi
 Read the `STATE:` line and dispatch:
 
 - **FRESH** → proceed with the bump action below (steps 1–4).
-- **ALREADY_BUMPED** → skip the bump by default, BUT check for queue drift first: call `bin/robobuilder-next-version` with the implied bump level (derived from `CURRENT_VERSION` vs `BASE_VERSION`), compare its `.version` against `CURRENT_VERSION`. If they differ (queue moved since last ship), use **AskUserQuestion**: "VERSION drift detected: you claim v<CURRENT> but next available is v<NEW> (queue moved). A) Rebump to v<NEW> and rewrite CHANGELOG header + PR title (recommended), B) Keep v<CURRENT> — will be rejected by CI version-gate until resolved." If A, treat this as FRESH with `NEW_VERSION=<new>` and run steps 1-4 (which will also trigger Step 13 CHANGELOG header rewrite and Step 19 PR title rewrite). If B, reuse `CURRENT_VERSION` and warn that CI will likely reject. If util is offline, warn and reuse `CURRENT_VERSION`.
+- **ALREADY_BUMPED** → skip the bump by default, BUT check for queue drift first: call `"$RB/robobuilder-next-version"` with the implied bump level (derived from `CURRENT_VERSION` vs `BASE_VERSION`), compare its `.version` against `CURRENT_VERSION`. If they differ (queue moved since last ship), use **AskUserQuestion**: "VERSION drift detected: you claim v<CURRENT> but next available is v<NEW> (queue moved). A) Rebump to v<NEW> and rewrite CHANGELOG header + PR title (recommended), B) Keep v<CURRENT> — will be rejected by CI version-gate until resolved." If A, treat this as FRESH with `NEW_VERSION=<new>` and run steps 1-4 (which will also trigger Step 13 CHANGELOG header rewrite and Step 19 PR title rewrite). If B, reuse `CURRENT_VERSION` and warn that CI will likely reject. If util is offline, warn and reuse `CURRENT_VERSION`.
 - **DRIFT_STALE_PKG** → a prior `/ship` bumped `VERSION` but failed to update `package.json`. Run the sync-only repair block below (after step 4). Do NOT re-bump. Reuse `CURRENT_VERSION` for CHANGELOG and PR body. (Queue check still runs in ALREADY_BUMPED terms after repair.)
 - **DRIFT_UNEXPECTED** → `/ship` has halted (exit 1). Resolve manually; /ship cannot tell which file is authoritative.
 
@@ -1840,10 +1868,12 @@ Read the `STATE:` line and dispatch:
 
    Save the chosen level as `BUMP_LEVEL` (one of `major`, `minor`, `patch`, `micro`). This is the user-intended level. The next step decides *placement* — the level stays the same even if queue-aware allocation has to advance past a claimed slot.
 
-3. **Queue-aware version pick (workspace-aware ship, v1.6.4.0+).** Call `bin/robobuilder-next-version` to see what's already claimed by open PRs + active sibling Conductor worktrees, then render the queue state to the user:
+3. **Queue-aware version pick (workspace-aware ship, v1.6.4.0+).** Call `"$RB/robobuilder-next-version"` to see what's already claimed by open PRs + active sibling Conductor worktrees, then render the queue state to the user:
 
    ```bash
-   QUEUE_JSON=$(bun run bin/robobuilder-next-version \
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+   QUEUE_JSON=$(bun run "$RB/robobuilder-next-version" \
      --base <base> \
      --bump "$BUMP_LEVEL" \
      --current-version "$BASE_VERSION" 2>/dev/null || echo '{"offline":true}')
@@ -2214,10 +2244,10 @@ glab mr view -F json 2>/dev/null | jq -r 'if .state == "opened" then "MR_EXISTS"
 
 If an **open** PR/MR already exists: **update** the PR body using `gh pr edit --body "..."` (GitHub) or `glab mr update -d "..."` (GitLab). Always regenerate the PR body from scratch using this run's fresh results (test output, coverage audit, review findings, adversarial review, TODOS summary, documentation_section from Step 18). Never reuse stale PR body content from a prior run.
 
-**Always update the PR title to start with `v$NEW_VERSION`.** PR titles use the workspace-aware format `v<NEW_VERSION> <type>: <summary>` — version ALWAYS first, no exceptions, no "custom title kept intentionally" escape hatch. The shared helper `bin/robobuilder-pr-title-rewrite.sh` is the single source of truth for the rule.
+**Always update the PR title to start with `v$NEW_VERSION`.** PR titles use the workspace-aware format `v<NEW_VERSION> <type>: <summary>` — version ALWAYS first, no exceptions, no "custom title kept intentionally" escape hatch. The shared helper `"$RB/robobuilder-pr-title-rewrite".sh` is the single source of truth for the rule.
 
 1. Read the current title: `CURRENT=$(gh pr view --json title -q .title)` (or `glab mr view -F json | jq -r .title`).
-2. Compute the corrected title: `NEW_TITLE=$(bin/robobuilder-pr-title-rewrite.sh "$NEW_VERSION" "$CURRENT")`. The helper handles three cases: title already correct (no-op), title has a different `v<X.Y.Z.W>` prefix (replace it), or title has no version prefix (prepend one).
+2. Compute the corrected title: `NEW_TITLE=$("$RB/robobuilder-pr-title-rewrite".sh "$NEW_VERSION" "$CURRENT")`. The helper handles three cases: title already correct (no-op), title has a different `v<X.Y.Z.W>` prefix (replace it), or title has no version prefix (prepend one).
 3. If `NEW_TITLE` differs from `CURRENT`, run `gh pr edit --title "$NEW_TITLE"` (or `glab mr update -t "$NEW_TITLE"`).
 4. **Self-check:** re-fetch the title and assert it starts with `v$NEW_VERSION `. If it does not, retry the edit once. If still wrong, surface the failure to the user.
 
@@ -2291,8 +2321,10 @@ you missed it.>
 **If GitHub:**
 
 ```bash
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
 # PR title MUST start with v$NEW_VERSION — enforced on every run, no exceptions.
-# (See Step 19 idempotency block + bin/robobuilder-pr-title-rewrite.sh for the rule.)
+# (See Step 19 idempotency block + "$RB/robobuilder-pr-title-rewrite".sh for the rule.)
 gh pr create --base <base> --title "v$NEW_VERSION <type>: <summary>" --body "$(cat <<'EOF'
 <PR body from above>
 EOF
@@ -2302,8 +2334,10 @@ EOF
 **If GitLab:**
 
 ```bash
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
 # MR title MUST start with v$NEW_VERSION — enforced on every run, no exceptions.
-# (See Step 19 idempotency block + bin/robobuilder-pr-title-rewrite.sh for the rule.)
+# (See Step 19 idempotency block + "$RB/robobuilder-pr-title-rewrite".sh for the rule.)
 glab mr create -b <base> -t "v$NEW_VERSION <type>: <summary>" -d "$(cat <<'EOF'
 <MR body from above>
 EOF
@@ -2322,8 +2356,10 @@ Print the branch name, remote URL, and instruct the user to create the PR/MR man
 Log coverage and plan completion data so `/retro` can track trends:
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 ```
 

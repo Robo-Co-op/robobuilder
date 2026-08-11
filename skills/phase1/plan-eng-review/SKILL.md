@@ -41,7 +41,7 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 
 ## RoboBuilder Runtime Notes
 
-Use `bin/robobuilder-paths` and `bin/robobuilder-slug` for project state. Full contract: `docs/RUNTIME.md`.
+Use `"$RB/robobuilder-paths"` and `"$RB/robobuilder-slug"` for project state. Full contract: `docs/RUNTIME.md`.
 
 ## Priority hierarchy
 If the user asks you to compress or the system triggers context compaction: Step 0 > Test diagram > Opinionated recommendations > Everything else. Never skip Step 0 or the test diagram. Do not preemptively warn about context limits -- the system handles compaction automatically.
@@ -85,9 +85,11 @@ When evaluating architecture, think "boring by default." When reviewing tests, t
 
 ### Design Doc Check
 ```bash
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
 setopt +o nomatch 2>/dev/null || true  # zsh compat
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' || echo 'no-branch')
 DESIGN=$(ls -t "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"/*-$BRANCH-design-*.md 2>/dev/null | head -1)
 [ -z "$DESIGN" ] && DESIGN=$(ls -t "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"/*-design-*.md 2>/dev/null | head -1)
@@ -141,9 +143,11 @@ Execute every other section at full depth. When the loaded skill's instructions 
 
 After /office-hours completes, re-run the design doc check:
 ```bash
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
 setopt +o nomatch 2>/dev/null || true  # zsh compat
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' || echo 'no-branch')
 DESIGN=$(ls -t "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"/*-$BRANCH-design-*.md 2>/dev/null | head -1)
 [ -z "$DESIGN" ] && DESIGN=$(ls -t "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"/*-design-*.md 2>/dev/null | head -1)
@@ -197,12 +201,14 @@ Always work through the full interactive review: one section at a time (Architec
 Search for relevant learnings from previous sessions:
 
 ```bash
-_CROSS_PROJ=$(bin/robobuilder-config get cross_project_learnings 2>/dev/null || echo "unset")
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+_CROSS_PROJ=$("$RB/robobuilder-config" get cross_project_learnings 2>/dev/null || echo "unset")
 echo "CROSS_PROJECT: $_CROSS_PROJ"
 if [ "$_CROSS_PROJ" = "true" ]; then
-  bin/robobuilder-learnings-search --limit 10 --cross-project 2>/dev/null || true
+  "$RB/robobuilder-learnings-search" --limit 10 --cross-project 2>/dev/null || true
 else
-  bin/robobuilder-learnings-search --limit 10 2>/dev/null || true
+  "$RB/robobuilder-learnings-search" --limit 10 2>/dev/null || true
 fi
 ```
 
@@ -217,8 +223,8 @@ Options:
 - A) Enable cross-project learnings (recommended)
 - B) Keep learnings project-scoped only
 
-If A: run `bin/robobuilder-config set cross_project_learnings true`
-If B: run `bin/robobuilder-config set cross_project_learnings false`
+If A: run `"$RB/robobuilder-config" set cross_project_learnings true`
+If B: run `"$RB/robobuilder-config" set cross_project_learnings false`
 
 Then re-run the search with the appropriate flag.
 
@@ -433,8 +439,10 @@ The plan should be complete enough that when implementation begins, every test i
 After producing the coverage diagram, write a test plan artifact to the project directory so `/qa` and `/qa-only` can consume it as primary test input:
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 USER=$(whoami)
 DATETIME=$(date +%Y%m%d-%H%M%S)
@@ -606,7 +614,9 @@ If no tension points exist, note: "No cross-model tension — both reviewers agr
 
 **Persist the result:**
 ```bash
-bin/robobuilder-review-log '{"skill":"codex-plan-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","commit":"'"$(git rev-parse --short HEAD)"'"}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-log" '{"skill":"codex-plan-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","commit":"'"$(git rev-parse --short HEAD)"'"}'
 ```
 
 Substitute: STATUS = "clean" if no findings, "issues_found" if findings exist.
@@ -731,7 +741,9 @@ the same pattern. The review dashboard depends on this data. Skipping this
 command breaks the review readiness dashboard in /ship.
 
 ```bash
-bin/robobuilder-review-log '{"skill":"plan-eng-review","timestamp":"TIMESTAMP","status":"STATUS","unresolved":N,"critical_gaps":N,"issues_found":N,"mode":"MODE","commit":"COMMIT"}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-log" '{"skill":"plan-eng-review","timestamp":"TIMESTAMP","status":"STATUS","unresolved":N,"critical_gaps":N,"issues_found":N,"mode":"MODE","commit":"COMMIT"}'
 ```
 
 Substitute values from the Completion Summary:
@@ -748,7 +760,9 @@ Substitute values from the Completion Summary:
 After completing the review, read the review log and config to display the dashboard.
 
 ```bash
-bin/robobuilder-review-read
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-read"
 ```
 
 Parse the output. Find the most recent entry for each skill (plan-ceo-review, plan-eng-review, review, plan-design-review, design-review-lite, adversarial-review, codex-review, codex-plan-review). Ignore entries with timestamps older than 7 days. For the Eng Review row, show whichever is more recent between `review` (diff-scoped pre-landing review) and `plan-eng-review` (plan-stage architecture review). Append "(DIFF)" or "(PLAN)" to the status to distinguish. For the Adversarial row, show whichever is more recent between `adversarial-review` (new auto-scaled) and `codex-review` (legacy). For Design Review, show whichever is more recent between `plan-design-review` (full visual audit) and `design-review-lite` (code-level check). Append "(FULL)" or "(LITE)" to the status to distinguish. For the Outside Voice row, show the most recent `codex-plan-review` entry — this captures outside voices from both /plan-ceo-review and /plan-eng-review.
@@ -776,7 +790,7 @@ Display:
 ```
 
 **Review tiers:**
-- **Eng Review (required by default):** The only review that gates shipping. Covers architecture, code quality, tests, performance. Can be disabled globally with \`bin/robobuilder-config set skip_eng_review true\` (the "don't bother me" setting).
+- **Eng Review (required by default):** The only review that gates shipping. Covers architecture, code quality, tests, performance. Can be disabled globally with \`"$RB/robobuilder-config" set skip_eng_review true\` (the "don't bother me" setting).
 - **CEO Review (optional):** Use your judgment. Recommend it for big product/business changes, new user-facing features, or scope decisions. Skip for bug fixes, refactors, infra, and cleanup.
 - **Design Review (optional):** Use your judgment. Recommend it for UI/UX changes. Skip for backend-only, infra, or prompt-only changes.
 - **Adversarial Review (automatic):** Always-on for every review. Every diff gets both Claude adversarial subagent and Codex adversarial challenge. Large diffs (200+ lines) additionally get Codex structured review with P1 gate. No configuration needed.
@@ -886,7 +900,9 @@ If you discovered a non-obvious pattern, pitfall, or architectural insight durin
 this session, log it for future sessions:
 
 ```bash
-bin/robobuilder-learnings-log '{"skill":"plan-eng-review","type":"TYPE","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"SOURCE","files":["path/to/relevant/file"]}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-learnings-log" '{"skill":"plan-eng-review","type":"TYPE","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"SOURCE","files":["path/to/relevant/file"]}'
 ```
 
 **Types:** `pattern` (reusable approach), `pitfall` (what NOT to do), `preference`

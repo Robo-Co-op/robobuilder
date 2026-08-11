@@ -39,7 +39,7 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 
 ## RoboBuilder Runtime Notes
 
-Use `bin/robobuilder-paths` and `bin/robobuilder-slug` for project state. Full contract: `docs/RUNTIME.md`.
+Use `"$RB/robobuilder-paths"` and `"$RB/robobuilder-slug"` for project state. Full contract: `docs/RUNTIME.md`.
 
 ## Detect command
 
@@ -57,8 +57,10 @@ Parse the user's input:
 ### Step 1: Find saved contexts
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 CHECKPOINT_DIR="$ROBOBUILDER_STATE_ROOT/projects/$SLUG/checkpoints"
 if [ ! -d "$CHECKPOINT_DIR" ]; then

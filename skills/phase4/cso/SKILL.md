@@ -40,7 +40,7 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 
 ## RoboBuilder Runtime Notes
 
-Use `bin/robobuilder-paths` and `bin/robobuilder-slug` for project state. Full contract: `docs/RUNTIME.md`.
+Use `"$RB/robobuilder-paths"` and `"$RB/robobuilder-slug"` for project state. Full contract: `docs/RUNTIME.md`.
 
 ## User-invocable
 When the user types `/cso`, run this skill.
@@ -119,12 +119,14 @@ This is NOT a checklist — it's a reasoning phase. The output is understanding,
 Search for relevant learnings from previous sessions:
 
 ```bash
-_CROSS_PROJ=$(bin/robobuilder-config get cross_project_learnings 2>/dev/null || echo "unset")
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+_CROSS_PROJ=$("$RB/robobuilder-config" get cross_project_learnings 2>/dev/null || echo "unset")
 echo "CROSS_PROJECT: $_CROSS_PROJ"
 if [ "$_CROSS_PROJ" = "true" ]; then
-  bin/robobuilder-learnings-search --limit 10 --cross-project 2>/dev/null || true
+  "$RB/robobuilder-learnings-search" --limit 10 --cross-project 2>/dev/null || true
 else
-  bin/robobuilder-learnings-search --limit 10 2>/dev/null || true
+  "$RB/robobuilder-learnings-search" --limit 10 2>/dev/null || true
 fi
 ```
 
@@ -139,8 +141,8 @@ Options:
 - A) Enable cross-project learnings (recommended)
 - B) Keep learnings project-scoped only
 
-If A: run `bin/robobuilder-config set cross_project_learnings true`
-If B: run `bin/robobuilder-config set cross_project_learnings false`
+If A: run `"$RB/robobuilder-config" set cross_project_learnings true`
+If B: run `"$RB/robobuilder-config" set cross_project_learnings false`
 
 Then re-run the search with the appropriate flag.
 
@@ -677,7 +679,9 @@ If you discovered a non-obvious pattern, pitfall, or architectural insight durin
 this session, log it for future sessions:
 
 ```bash
-bin/robobuilder-learnings-log '{"skill":"cso","type":"TYPE","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"SOURCE","files":["path/to/relevant/file"]}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-learnings-log" '{"skill":"cso","type":"TYPE","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"SOURCE","files":["path/to/relevant/file"]}'
 ```
 
 **Types:** `pattern` (reusable approach), `pitfall` (what NOT to do), `preference`

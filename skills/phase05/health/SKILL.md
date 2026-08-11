@@ -37,7 +37,7 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 
 ## RoboBuilder Runtime Notes
 
-Use `bin/robobuilder-paths` and `bin/robobuilder-slug` for project state. Full contract: `docs/RUNTIME.md`.
+Use `"$RB/robobuilder-paths"` and `"$RB/robobuilder-slug"` for project state. Full contract: `docs/RUNTIME.md`.
 
 ## User-invocable
 When the user types `/health`, run this skill.
@@ -222,8 +222,10 @@ DETAILS: Lint (3 warnings)
 ## Step 5: Persist to Health History
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 ```
 
@@ -251,8 +253,10 @@ Read the last 10 entries from `$ROBOBUILDER_STATE_ROOT/projects/$SLUG/health-his
 file exists and has prior entries).
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 tail -10 "$ROBOBUILDER_STATE_ROOT/projects/$SLUG/health-history.jsonl" 2>/dev/null || echo "NO_HISTORY"
 ```

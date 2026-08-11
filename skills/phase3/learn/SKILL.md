@@ -37,7 +37,7 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 
 ## RoboBuilder Runtime Notes
 
-Use `bin/robobuilder-paths` and `bin/robobuilder-slug` for project state. Full contract: `docs/RUNTIME.md`.
+Use `"$RB/robobuilder-paths"` and `"$RB/robobuilder-slug"` for project state. Full contract: `docs/RUNTIME.md`.
 
 ## Detect command
 
@@ -57,8 +57,10 @@ Parse the user's input to determine which command to run:
 Show the most recent 20 learnings, grouped by type.
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-bin/robobuilder-learnings-search --limit 20 2>/dev/null || echo "No learnings yet."
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+"$RB/robobuilder-learnings-search" --limit 20 2>/dev/null || echo "No learnings yet."
 ```
 
 Present the output in a readable format. If no learnings exist, tell the user:
@@ -70,8 +72,10 @@ RoboBuilder can capture patterns, pitfalls, and insights it discovers."
 ## Search
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-bin/robobuilder-learnings-search --query "USER_QUERY" --limit 20 2>/dev/null || echo "No matches."
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+"$RB/robobuilder-learnings-search" --query "USER_QUERY" --limit 20 2>/dev/null || echo "No matches."
 ```
 
 Replace USER_QUERY with the user's search terms. Present results clearly.
@@ -83,8 +87,10 @@ Replace USER_QUERY with the user's search terms. Present results clearly.
 Check learnings for staleness and contradictions.
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-bin/robobuilder-learnings-search --limit 100 2>/dev/null
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+"$RB/robobuilder-learnings-search" --limit 100 2>/dev/null
 ```
 
 For each learning in the output:
@@ -113,8 +119,10 @@ latest entry wins).
 Export learnings as markdown suitable for adding to CLAUDE.md or project documentation.
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-bin/robobuilder-learnings-search --limit 50 2>/dev/null
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+"$RB/robobuilder-learnings-search" --limit 50 2>/dev/null
 ```
 
 Format the output as a markdown section:
@@ -145,8 +153,10 @@ or save it as a separate file.
 Show summary statistics about the project's learnings.
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 LEARN_FILE="$ROBOBUILDER_STATE_ROOT/projects/$SLUG/learnings.jsonl"
 if [ -f "$LEARN_FILE" ]; then
   TOTAL=$(wc -l < "$LEARN_FILE" | tr -d ' ')
@@ -198,5 +208,7 @@ The user wants to manually add a learning. Use AskUserQuestion to gather:
 Then log it:
 
 ```bash
-bin/robobuilder-learnings-log '{"skill":"learn","type":"TYPE","key":"KEY","insight":"INSIGHT","confidence":N,"source":"user-stated","files":["FILE1"]}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-learnings-log" '{"skill":"learn","type":"TYPE","key":"KEY","insight":"INSIGHT","confidence":N,"source":"user-stated","files":["FILE1"]}'
 ```

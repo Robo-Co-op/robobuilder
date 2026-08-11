@@ -54,7 +54,7 @@ This is the combination of `/careful` + `/freeze` in a single command.
 
 ## RoboBuilder Runtime Notes
 
-Use `bin/robobuilder-paths` for local state. Full contract: `docs/RUNTIME.md`.
+Use `"$RB/robobuilder-paths"` for local state. Full contract: `docs/RUNTIME.md`.
 
 **Dependency note:** This skill references hook scripts from the sibling `/careful`
 and `/freeze` skill directories. Both must be installed (they are installed together
@@ -77,8 +77,10 @@ echo "$FREEZE_DIR"
 
 2. Ensure trailing slash and save to the freeze state file:
 ```bash
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
 FREEZE_DIR="${FREEZE_DIR%/}/"
-eval "$(bin/robobuilder-paths)"
+eval "$("$RB/robobuilder-paths")"
 STATE_DIR="$ROBOBUILDER_STATE_ROOT"
 mkdir -p "$STATE_DIR"
 echo "$FREEZE_DIR" > "$STATE_DIR/freeze-dir.txt"
