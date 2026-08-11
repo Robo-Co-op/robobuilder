@@ -46,6 +46,18 @@ find . -type f \
   -not -path '*/dist/*' \
   -not -path '*/build/*' \
   -not -path '*/.turbo/*' \
+  -not -path '*/__pycache__/*' \
+  -not -path '*/.mypy_cache/*' \
+  -not -path '*/.ruff_cache/*' \
+  -not -path '*/.pytest_cache/*' \
+  -not -path '*/.venv/*' \
+  -not -path '*/venv/*' \
+  -not -path '*/target/*' \
+  -not -name '*.pyc' \
+  -not -name '*.pyo' \
+  -not -name '*.class' \
+  -not -name '*.o' \
+  -not -name '*.so' \
   -not -name '*.lock' \
   -not -name 'package-lock.json' \
   -not -name '*.png' \

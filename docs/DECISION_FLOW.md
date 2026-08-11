@@ -50,7 +50,7 @@ Stage?
 ├─ PR approved            → /robobuilder:land-and-deploy        (merge + CI + deploy + health)
 ├─ Just deployed          → /robobuilder:canary                  (monitor for regressions)
 ├─ Want metrics baseline  → /robobuilder:benchmark               (Core Web Vitals)
-└─ Session ending         → /robobuilder:handoff                 (or handoff --light = recap)
+└─ Session ending         → /robobuilder:handoff                 
 ```
 
 ## Unfamiliar codebase?

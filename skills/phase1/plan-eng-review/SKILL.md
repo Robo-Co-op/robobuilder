@@ -11,13 +11,15 @@ description: |
   Proactively suggest when the user has a plan or design doc and is about to
   start coding — to catch architecture issues before implementation. (robobuilder-local)
   Voice triggers (speech-to-text aliases): "tech review", "technical review", "plan engineering review".
-benefits-from: [office-hours]
+benefits-from: [grill-me]
 allowed-tools:
   - Read
   - Write
+  - Edit          # Step "Plan File Review Report" deletes and rewrites a section
   - Grep
   - Glob
   - AskUserQuestion
+  - Agent          # the Codex-absent fallback dispatches an independent subagent
   - Bash
   - WebSearch
 triggers:
@@ -30,7 +32,7 @@ bootcamp_module: M3.code.design
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase1)
-> - **What**: |
+> - **What**: Eng manager-mode plan review. Lock in the execution plan — architecture, data flow, diagrams, edge cases, test coverage, performance. Walks through issues interactively with opinionated recommendations
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:to-prd, /robobuilder:tdd
 > - **Bootcamp**: M3.code.design
@@ -41,7 +43,7 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 
 ## RoboBuilder Runtime Notes
 
-Use `bin/robobuilder-paths` and `bin/robobuilder-slug` for project state. Full contract: `docs/RUNTIME.md`.
+Use `"$RB/robobuilder-paths"` and `"$RB/robobuilder-slug"` for project state. Full contract: `docs/RUNTIME.md`.
 
 ## Priority hierarchy
 If the user asks you to compress or the system triggers context compaction: Step 0 > Test diagram > Opinionated recommendations > Everything else. Never skip Step 0 or the test diagram. Do not preemptively warn about context limits -- the system handles compaction automatically.
@@ -85,9 +87,11 @@ When evaluating architecture, think "boring by default." When reviewing tests, t
 
 ### Design Doc Check
 ```bash
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
 setopt +o nomatch 2>/dev/null || true  # zsh compat
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' || echo 'no-branch')
 DESIGN=$(ls -t "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"/*-$BRANCH-design-*.md 2>/dev/null | head -1)
 [ -z "$DESIGN" ] && DESIGN=$(ls -t "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"/*-design-*.md 2>/dev/null | head -1)
@@ -102,56 +106,36 @@ skill before proceeding.
 
 Say to the user via AskUserQuestion:
 
-> "No design doc found for this branch. `/office-hours` produces a structured problem
-> statement, premise challenge, and explored alternatives — it gives this review much
-> sharper input to work with. Takes about 10 minutes. The design doc is per-feature,
-> not per-product — it captures the thinking behind this specific change."
+> "No design doc found for this branch. `/robobuilder:grill-me` walks the design
+> decision tree one question at a time and settles the branches nobody has decided yet —
+> it gives this review much sharper input to work with. Takes about 10 minutes."
 
 Options:
-- A) Run /office-hours now (we'll pick up the review right after)
+- A) Grill the design now (we'll pick up the review right after)
 - B) Skip — proceed with standard review
 
-If they skip: "No worries — standard review. If you ever want sharper input, try
-/office-hours first next time." Then proceed normally. Do not re-offer later in the session.
+If they skip: "No worries — standard review. If you ever want sharper input, run
+`/robobuilder:grill-me` first next time." Then proceed normally. Do not re-offer later in
+the session.
 
 If they choose A:
 
-Say: "Running /office-hours inline. Once the design doc is ready, I'll pick up
-the review right where we left off."
+Say: "Grilling the design inline. Once the decisions are settled, I'll pick up the review
+right where we left off."
 
-Read the `/office-hours` skill file at `skills/phase1/grill-me/SKILL.md` using the Read tool.
+Read `skills/phase1/grill-me/SKILL.md` with the Read tool and follow it to completion.
 
-**If unreadable:** Skip with "Could not load /office-hours — skipping." and continue.
+**If unreadable:** Skip with "Could not load grill-me — proceeding with standard review."
+and continue.
 
-Follow its instructions from top to bottom, **skipping these sections** (already handled by the parent skill):
-- Preamble (run first)
-- AskUserQuestion Format
-- Completeness Principle — Boil the Lake
-- Search Before Building
-- Contributor Mode
-- Completion Status Protocol
-- Telemetry (run last)
-- Step 0: Detect platform and base branch
-- Review Readiness Dashboard
-- Plan File Review Report
-- Prerequisite Skill Offer
-- Plan Status Footer
+**What this branch does and does not give you.** `grill-me` is an interview: it settles
+the design in the *conversation*, which is what the review needs. It writes **no file**.
+So do not re-check for a design doc afterwards — nothing in any robobuilder edition
+writes a `*-design-*.md` into the state root, and a re-check can only ever print "No
+design doc found", which reads as "the user cancelled" when in fact the branch worked.
 
-Execute every other section at full depth. When the loaded skill's instructions are complete, continue with the next step below.
-
-After /office-hours completes, re-run the design doc check:
-```bash
-setopt +o nomatch 2>/dev/null || true  # zsh compat
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
-BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' || echo 'no-branch')
-DESIGN=$(ls -t "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"/*-$BRANCH-design-*.md 2>/dev/null | head -1)
-[ -z "$DESIGN" ] && DESIGN=$(ls -t "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"/*-design-*.md 2>/dev/null | head -1)
-[ -n "$DESIGN" ] && echo "Design doc found: $DESIGN" || echo "No design doc found"
-```
-
-If a design doc is now found, read it and continue the review.
-If none was produced (user may have cancelled), proceed with standard review.
+Carry the decisions forward from context and continue the review. If you want the
+reasoning on disk, `/robobuilder:to-prd` is the skill that writes it.
 
 ### Step 0: Scope Challenge
 Before reviewing anything, answer these questions:
@@ -176,7 +160,7 @@ Before reviewing anything, answer these questions:
    - How will users download or install it (GitHub Releases, package manager, container registry)?
    If the plan defers distribution, flag it explicitly in the "NOT in scope" section — don't let it silently drop.
 
-If the complexity check triggers (8+ files or 2+ new classes/services), STOP before any review-section work. Call AskUserQuestion: name what's overbuilt, propose a minimal version that achieves the core goal, ask whether to reduce or proceed as-is. The AskUserQuestion call is a tool_use, not prose — call the tool directly.
+If the complexity check triggers — **more than 8 files, or more than 2 new classes/services**, matching the definition above rather than restating it as 8+/2+ — STOP before any review-section work. Call AskUserQuestion: name what's overbuilt, propose a minimal version that achieves the core goal, ask whether to reduce or proceed as-is. The AskUserQuestion call is a tool_use, not prose — call the tool directly.
 
 **STOP.** Do NOT proceed to Section 1 (Architecture review), edit the plan file with a proposed scope reduction, or call ExitPlanMode until the user responds. Naming the 80% solution in chat prose and continuing — or loading the AskUserQuestion schema via ToolSearch and then never invoking it — is the failure mode this gate exists to prevent.
 
@@ -197,12 +181,17 @@ Always work through the full interactive review: one section at a time (Architec
 Search for relevant learnings from previous sessions:
 
 ```bash
-_CROSS_PROJ=$(bin/robobuilder-config get cross_project_learnings 2>/dev/null || echo "unset")
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+# robobuilder-config exits 0 with EMPTY output for a missing key, so `|| echo` never
+# fires. Test the value, not the exit code, or "unset" and "set to empty" collapse.
+_CROSS_PROJ=$("$RB/robobuilder-config" get cross_project_learnings 2>/dev/null)
+[ -z "$_CROSS_PROJ" ] && _CROSS_PROJ="unset"
 echo "CROSS_PROJECT: $_CROSS_PROJ"
 if [ "$_CROSS_PROJ" = "true" ]; then
-  bin/robobuilder-learnings-search --limit 10 --cross-project 2>/dev/null || true
+  "$RB/robobuilder-learnings-search" --limit 10 --cross-project 2>/dev/null || true
 else
-  bin/robobuilder-learnings-search --limit 10 2>/dev/null || true
+  "$RB/robobuilder-learnings-search" --limit 10 2>/dev/null || true
 fi
 ```
 
@@ -217,8 +206,8 @@ Options:
 - A) Enable cross-project learnings (recommended)
 - B) Keep learnings project-scoped only
 
-If A: run `bin/robobuilder-config set cross_project_learnings true`
-If B: run `bin/robobuilder-config set cross_project_learnings false`
+If A: run `"$RB/robobuilder-config" set cross_project_learnings true`
+If B: run `"$RB/robobuilder-config" set cross_project_learnings false`
 
 Then re-run the search with the appropriate flag.
 
@@ -433,8 +422,10 @@ The plan should be complete enough that when implementation begins, every test i
 After producing the coverage diagram, write a test plan artifact to the project directory so `/qa` and `/qa-only` can consume it as primary test input:
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
 USER=$(whoami)
 DATETIME=$(date +%Y%m%d-%H%M%S)
@@ -606,7 +597,9 @@ If no tension points exist, note: "No cross-model tension — both reviewers agr
 
 **Persist the result:**
 ```bash
-bin/robobuilder-review-log '{"skill":"codex-plan-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","commit":"'"$(git rev-parse --short HEAD)"'"}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-log" '{"skill":"codex-plan-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","commit":"'"$(git rev-parse --short HEAD)"'"}'
 ```
 
 Substitute: STATUS = "clean" if no findings, "issues_found" if findings exist.
@@ -731,7 +724,9 @@ the same pattern. The review dashboard depends on this data. Skipping this
 command breaks the review readiness dashboard in /ship.
 
 ```bash
-bin/robobuilder-review-log '{"skill":"plan-eng-review","timestamp":"TIMESTAMP","status":"STATUS","unresolved":N,"critical_gaps":N,"issues_found":N,"mode":"MODE","commit":"COMMIT"}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-log" '{"skill":"plan-eng-review","timestamp":"TIMESTAMP","status":"STATUS","unresolved":N,"critical_gaps":N,"issues_found":N,"mode":"MODE","commit":"COMMIT"}'
 ```
 
 Substitute values from the Completion Summary:
@@ -745,10 +740,19 @@ Substitute values from the Completion Summary:
 
 ## Review Readiness Dashboard
 
-After completing the review, read the review log and config to display the dashboard.
+After completing the review, read the review log to display the dashboard.
+
+**Rows for reviews this installation does not have.** `/plan-ceo-review`,
+`/plan-design-review` and `/plan-devex-review` are sibling skills from the gstack
+upstream that robobuilder does not ship. Their rows can never have a run. Render them as
+**`— not installed`**, not as a blank or "never run" status: a blank reads as "this review
+was skipped", which is a different and much worse claim than "this review does not exist
+here."
 
 ```bash
-bin/robobuilder-review-read
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-review-read"
 ```
 
 Parse the output. Find the most recent entry for each skill (plan-ceo-review, plan-eng-review, review, plan-design-review, design-review-lite, adversarial-review, codex-review, codex-plan-review). Ignore entries with timestamps older than 7 days. For the Eng Review row, show whichever is more recent between `review` (diff-scoped pre-landing review) and `plan-eng-review` (plan-stage architecture review). Append "(DIFF)" or "(PLAN)" to the status to distinguish. For the Adversarial row, show whichever is more recent between `adversarial-review` (new auto-scaled) and `codex-review` (legacy). For Design Review, show whichever is more recent between `plan-design-review` (full visual audit) and `design-review-lite` (code-level check). Append "(FULL)" or "(LITE)" to the status to distinguish. For the Outside Voice row, show the most recent `codex-plan-review` entry — this captures outside voices from both /plan-ceo-review and /plan-eng-review.
@@ -776,7 +780,7 @@ Display:
 ```
 
 **Review tiers:**
-- **Eng Review (required by default):** The only review that gates shipping. Covers architecture, code quality, tests, performance. Can be disabled globally with \`bin/robobuilder-config set skip_eng_review true\` (the "don't bother me" setting).
+- **Eng Review (required by default):** The only review that gates shipping. Covers architecture, code quality, tests, performance. Can be disabled globally with \`"$RB/robobuilder-config" set skip_eng_review true\` (the "don't bother me" setting).
 - **CEO Review (optional):** Use your judgment. Recommend it for big product/business changes, new user-facing features, or scope decisions. Skip for bug fixes, refactors, infra, and cleanup.
 - **Design Review (optional):** Use your judgment. Recommend it for UI/UX changes. Skip for backend-only, infra, or prompt-only changes.
 - **Adversarial Review (automatic):** Always-on for every review. Every diff gets both Claude adversarial subagent and Codex adversarial challenge. Large diffs (200+ lines) additionally get Codex structured review with P1 gate. No configuration needed.
@@ -886,7 +890,9 @@ If you discovered a non-obvious pattern, pitfall, or architectural insight durin
 this session, log it for future sessions:
 
 ```bash
-bin/robobuilder-learnings-log '{"skill":"plan-eng-review","type":"TYPE","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"SOURCE","files":["path/to/relevant/file"]}'
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+"$RB/robobuilder-learnings-log" '{"skill":"plan-eng-review","type":"TYPE","key":"SHORT_KEY","insight":"DESCRIPTION","confidence":N,"source":"SOURCE","files":["path/to/relevant/file"]}'
 ```
 
 **Types:** `pattern` (reusable approach), `pitfall` (what NOT to do), `preference`
@@ -913,16 +919,22 @@ After displaying the Review Readiness Dashboard, check if additional reviews wou
 
 **Suggest /plan-design-review if UI changes exist and no design review has been run** — detect from the test diagram, architecture review, or any section that touched frontend components, CSS, views, or user-facing interaction flows. If an existing design review's commit hash shows it predates significant changes found in this eng review, note that it may be stale.
 
-**Mention /plan-ceo-review if this is a significant product change and no CEO review exists** — this is a soft suggestion, not a push. CEO review is optional. Only mention it if the plan introduces new user-facing features, changes product direction, or expands scope substantially.
+**If this is a significant product change** — new user-facing features, a change in product direction, or a substantial scope expansion — say so plainly and suggest a second pair of human eyes before implementation. Do not name `/plan-ceo-review`: robobuilder does not ship it, and pointing at a command that does not exist is worse than pointing at nothing.
 
 **Note staleness** of existing CEO or design reviews if this eng review found assumptions that contradict them, or if the commit hash shows significant drift.
 
 **If no additional reviews are needed** (or `skip_eng_review` is `true` in the dashboard config, meaning this eng review was optional): state "All relevant reviews complete. Run /ship when ready."
 
-Use AskUserQuestion with only the applicable options:
-- **A)** Run /plan-design-review (only if UI scope detected and no design review exists)
-- **B)** Run /plan-ceo-review (only if significant product change and no CEO review exists)
-- **C)** Ready to implement — run /ship when done
+Use AskUserQuestion with only the applicable options **that this installation can
+actually run**. `/plan-design-review` and `/plan-ceo-review` are not shipped by
+robobuilder, so do not offer them — offering a command the user cannot invoke wastes the
+turn and reads as a broken skill.
+
+- **A)** Run `/robobuilder:grill-me` on the open design questions this review surfaced
+  (only if any were left unresolved)
+- **B)** Run `/robobuilder:cso` (only if the plan touches auth, payments, secrets or
+  external input)
+- **C)** Ready to implement — run `/robobuilder:ship` when done
 
 ## Unresolved decisions
 If the user does not respond to an AskUserQuestion or interrupts to move on, note which decisions were left unresolved. At the end of the review, list these as "Unresolved decisions that may bite you later" — never silently default to an option.

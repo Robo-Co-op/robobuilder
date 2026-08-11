@@ -24,18 +24,16 @@ bootcamp_module: M3.code.ship
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase5)
-> - **What**: |
+> - **What**: Post-deploy canary monitoring. Watches the live app for console errors, performance regressions, and page failures using the browse daemon. Takes periodic screenshots, compares against pre-deploy baselines, and alerts on anomalies
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:land-and-deploy, /robobuilder:browse
 > - **Bootcamp**: M3.code.ship
 > - **Origin**: Garry Tan upstream, adapted for RoboBuilder
 
-<!-- AUTO-GENERATED from SKILL.md.tmpl — do not edit directly -->
-<!-- Regenerate: bun run gen:skill-docs -->
 
 ## RoboBuilder Runtime Notes
 
-Use `bin/robobuilder-paths` and `bin/robobuilder-slug` for project state. Full contract: `docs/RUNTIME.md`.
+Use `"$RB/robobuilder-paths"` and `"$RB/robobuilder-slug"` for project state. Full contract: `docs/RUNTIME.md`.
 
 ## SETUP (run this check BEFORE any browse command)
 
@@ -109,10 +107,17 @@ When the user types `/canary`, run this skill.
 
 ## Instructions
 
+**Flags, and where they take effect.** `--baseline` runs Phase 2 only. `--pages` replaces
+the default page list. **`--quick` runs one pass and stops** — do Phases 1-4, report, and
+skip Phase 5's monitoring loop entirely. Without this the loop runs unconditionally and a
+user who asked for a single health check waits for a watch that was never wanted.
+
 ### Phase 1: Setup
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null || echo "SLUG=unknown")"
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null || echo "SLUG=unknown")"
 mkdir -p .robobuilder/canary-reports
 mkdir -p .robobuilder/canary-reports/baselines
 mkdir -p .robobuilder/canary-reports/screenshots
@@ -205,7 +210,11 @@ After each check, compare results against the baseline (or pre-deploy snapshot):
 1. **Page load failure** — `goto` returns error or timeout → CRITICAL ALERT
 2. **New console errors** — errors not present in baseline → HIGH ALERT
 3. **Performance regression** — load time exceeds 2x baseline → MEDIUM ALERT
-4. **Broken links** — new 404s not in baseline → LOW ALERT
+4. **Broken links** — new 404s not in baseline → LOW ALERT. **Only if Phase 2 actually
+   captured links.** Baseline capture takes screenshots and console output; it does not
+   run a link crawl, so unless you added one there is no baseline to diff against and
+   this criterion has no subject. Say "links: not baselined" rather than reporting zero
+   broken links, which reads as a clean result.
 
 **Alert on changes, not absolutes.** A page with 3 console errors in the baseline is fine if it still has 3. One NEW error is an alert.
 
@@ -262,10 +271,21 @@ Save report to `.robobuilder/canary-reports/{date}-canary.md` and `.robobuilder/
 Log the result for the review dashboard:
 
 ```bash
-eval "$(bin/robobuilder-slug 2>/dev/null)"
-eval "$(bin/robobuilder-paths)"
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
+eval "$("$RB/robobuilder-slug" 2>/dev/null)"
+eval "$("$RB/robobuilder-paths")"
 mkdir -p "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"
+"$RB/robobuilder-review-log" '{"skill":"canary","timestamp":"TIMESTAMP","status":"STATUS","url":"URL","checks":N,"alerts":M,"commit":"'"$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"'"}'
 ```
+
+Substitute: TIMESTAMP = ISO 8601 datetime, STATUS = "healthy" / "alerts" / "critical",
+URL = the monitored URL, N = checks run, M = alerts raised. The payload is a single JSON
+argument, matching how `/robobuilder:ship` logs its own records.
+
+The `mkdir` alone used to be the whole step: it created the directory and wrote nothing
+into it, so canary results never reached the review dashboard `/robobuilder:ship` reads —
+and an empty dashboard is indistinguishable from a deploy that was never canaried.
 
 Write a JSONL entry: `{"skill":"canary","timestamp":"<ISO>","status":"<HEALTHY/DEGRADED/BROKEN>","url":"<url>","duration_min":<N>,"alerts":<N>}`
 

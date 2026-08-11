@@ -26,7 +26,9 @@ bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 
 2. **Draft the skill** - create:
    - SKILL.md with concise instructions
-   - Additional reference files if content exceeds 500 lines
+   - Additional reference files once SKILL.md exceeds 100 lines (the same threshold the
+     checklist below enforces -- this line used to say 500, so the guidance and the
+     check disagreed by 5x)
    - Utility scripts if deterministic operations needed
 
 3. **Review with user** - present draft and ask:

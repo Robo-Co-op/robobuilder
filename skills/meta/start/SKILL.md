@@ -7,7 +7,7 @@ origin: robobuilder
 # /robobuilder:start
 
 ## What
-Interactive onboarding that turns the 33-skill catalog into a personalized 3-skill starter pack based on who the user is and what they're doing right now.
+Interactive onboarding that turns the 41-skill catalog into a personalized 3-skill starter pack based on who the user is and what they're doing right now.
 
 ## When
 - User just installed robobuilder for the first time
@@ -30,6 +30,12 @@ Ask the user three short questions in sequence (one at a time, wait for answers)
 - (c) Designer
 - (d) Sales / Marketing
 - (e) Other
+
+**(d) and (e) have no row in the routing table below, and that is deliberate — robobuilder
+is an engineering plugin.** Do not invent a pack for them. Say so, point at
+`/robobuilder:install-companions` (which has `sales` and `marketing` presets), and offer
+the generic engineering starter only if they say they also write code. Falling through to
+an empty recommendation leaves the user with a mandate and no skills.
 
 ### Q2 — Experience with Claude Code
 "How familiar are you with Claude Code?"

@@ -2,6 +2,106 @@
 
 All notable changes to robobuilder.
 
+## [1.8.0] — 2026-08-11
+
+Closes out the execution sweep: all 51 confirmed findings are fixed.
+
+### Fixed
+- **`guard` enforced nothing.** It sold "full safety mode" while its three PreToolUse
+  hooks pointed at `careful/` and `freeze/` skill directories that exist in no
+  robobuilder edition. Both hooks are now implemented (`scripts/check_careful.py`,
+  `scripts/check_freeze.py`), fail closed on unparseable input, and are tested by
+  behaviour — 10 command cases, multi-edit escape, and a check that every declared hook
+  target resolves
+- **`learn`'s dedup kept the oldest entry.** It compared `new Date(e.ts)` and no writer
+  emits `ts`, so `NaN > NaN` was always false. Also: `AVG_CONFIDENCE` divided by zero
+  and printed `NaN` as a result, and an empty log reported `TOTAL: 0` as a measurement
+- **`to-issues` discarded its own HITL/AFK classification** at the publish step, and its
+  issue template had no Type field, so the classification had no output channel
+- **`plan-eng-review` offered `/office-hours`**, which exists nowhere, then re-checked
+  for a design doc that nothing writes — and read the inevitable miss as "user cancelled"
+- **`install-companions` advertised six presets and defined four**
+- 34 further defects: dangling command and doc references, unreachable `|| echo`
+  fallbacks after a helper that exits 0, a documented flag no phase branched on,
+  thresholds a skill stated two ways, and `tdd` gating its independent check on the
+  self-judgement that check exists to replace
+
+### Added
+- `scripts/tests/test_guard_hooks.py` — guard's hooks must block, not merely exist
+- Fixed `scripts/dev/update_skill_frontmatter.py`, which returned the literal YAML
+  block-scalar indicator; 11 shipped skills carried a pedagogy header reading
+  `**What**: |`. Regenerated all eleven
+
+## [1.7.0] — 2026-08-11
+
+Eleven skills persisted nothing when robobuilder was installed the supported way.
+
+### Fixed
+- **The runtime contract itself.** `docs/RUNTIME.md` prescribed calling the helpers as
+  `bin/robobuilder-paths` — a bare relative path. But `bin/` ships *inside the plugin*,
+  is never copied into the user's project and never added to `PATH`, and
+  `settings.json.example` pins the shell's cwd to the user's project. The bare form
+  resolves only when the working directory happens to be a checkout of this repo, which
+  the supported install never produces.
+
+  Eleven skills followed that contract across 124 call sites: `health`,
+  `plan-eng-review`, `browse`, `learn`, `cso`, `canary`, `land-and-deploy`, `ship`,
+  `context-save`, `context-restore`, `guard`.
+
+  The failure was silent by construction. `eval "$(missing-command)"` leaves `SLUG` and
+  `ROBOBUILDER_STATE_ROOT` **empty and exits 0**, so every read returned nothing —
+  indistinguishable from a genuinely empty store — and every write landed in
+  `/projects/…` and failed. Learnings, review records and context snapshots appeared to
+  save and did not.
+
+  Helpers are now addressed through `$RB`, rooted at `${CLAUDE_PLUGIN_ROOT}` (the form
+  `hooks/hooks.json` and the meta skills already use), and every shell block that uses
+  `$RB` defines it and refuses to continue when the helpers are absent.
+
+### Added
+- Tests on all three counts, because the path alone was never the point: no bare
+  invocation, no `$RB` without its definition, no `$RB` without the existence check, and
+  `docs/RUNTIME.md` must show both the bootstrap and the guard
+
+Found by an execution sweep over the 46 skills that had never been run: 114 findings
+raised, 63 refuted by independent verifiers, 51 confirmed. This was the root of two of
+the eleven high-severity ones.
+
+## [1.6.0] — 2026-08-11
+
+Five of the nine bundled agents shipped with no skill calling them. They were
+installed and invisible — reachable only if a user typed their name — and three of
+them named the skill they belong to in their own description while that skill never
+dispatched them.
+
+### Fixed
+- `requirements-validator` — "Use after `/to-prd` is generated" → now dispatched by
+  `to-prd` on the draft, before publishing
+- `tdd-pair` — "Use whenever `/tdd` is invoked" → now dispatched by `tdd` at the point
+  where red gets skipped
+- `codebase-explorer` — "for the Phase 0.5 workflow" → now dispatched by `zoom-out`,
+  the Phase 0.5 skill, to build the map
+- `design-critic` — "Complements the interactive `/grill-me`" → now dispatched by
+  `grill-me` once the design is settled
+- `release-notes-writer` — "Use during `/ship`" → now dispatched by `ship` Step 13 to
+  group commits by theme
+
+Each is wired where its own description points, with the reason stated rather than
+just the call — an author is the worst reader of their own PRD, the agent deciding
+whether it wrote a test first has an incentive to get that wrong, and mapping or
+log-grouping belongs in a subagent to keep the reading out of the main context.
+
+### Added
+- Test: every agent in `agents/` must be dispatched by some skill. It strips fenced
+  blocks and blockquotes first, because `upgrade` renders a mock console diff naming
+  two of these agents as sample output — the first survey of this counted those as
+  dispatches and concluded only three agents were unwired, i.e. it would have blessed
+  the exact bug it exists to catch
+- Test: `plugin.json`'s agent list must match `agents/` on disk
+
+Found by running `zoom-out` and reading the map it produced: the agent whose job is
+building that map was the one `zoom-out` did not call.
+
 ## [1.5.1] — 2026-08-09
 
 Three unreachable audits, found by executing the skills' control flow rather than

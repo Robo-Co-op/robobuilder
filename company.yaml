@@ -102,6 +102,8 @@ companion_presets:
   dev:
     - anthropic-skills:pptx
     - anthropic-skills:docx
+    - anthropic-skills:xlsx
+    - anthropic-skills:pdf
     - codex
   pm:
     - product-management
@@ -112,3 +114,14 @@ companion_presets:
   design:
     - design
     - brand-voice
+  # marketing and ops were advertised by install-companions and documented in
+  # docs/COMPANION_SKILLS.md, but were missing here -- so the preset resolved to
+  # nothing and the skill had no branch for an empty result.
+  marketing:
+    - marketing
+    - brand-voice
+  ops:
+    - operations
+    - finance
+    - legal
+    - human-resources

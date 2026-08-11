@@ -62,7 +62,16 @@ Iterate until the user approves the breakdown.
 
 ### 5. Publish the issues to the issue tracker
 
-For each approved slice, publish a new issue to the issue tracker. Use the issue body template below. These issues are considered ready for AFK agents, so publish them with the correct triage label unless instructed otherwise.
+For each approved slice, publish a new issue to the issue tracker. Use the issue body template below.
+
+**Carry each slice's Type through to the tracker.** Steps 3 and 4 classify every slice
+AFK or HITL and have the user ratify it; publishing them all as agent-ready throws that
+away at the last step, and a HITL slice picked up by an unattended agent is precisely the
+architectural decision or design review the classification existed to protect. Put the
+Type in the issue body (see the template) and apply the tracker's agent-ready label to
+**AFK slices only**. If the project's label vocabulary is configured (`/robobuilder:setup`),
+use the names from there; if it is not, say which label you are applying and why rather
+than guessing silently.
 
 Publish issues in dependency order (blockers first) so you can reference real issue identifiers in the "Blocked by" field.
 
@@ -76,6 +85,11 @@ A reference to the parent issue on the issue tracker (if the source was an exist
 A concise description of this vertical slice. Describe the end-to-end behavior, not layer-by-layer implementation.
 
 Avoid specific file paths or code snippets — they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it here and note briefly that it came from a prototype. Trim to the decision-rich parts — not a working demo, just the important bits.
+
+## Type
+
+AFK or HITL. AFK means an agent can implement and merge this unattended. HITL means it
+needs a human decision or review first — say which, in one line.
 
 ## Acceptance criteria
 

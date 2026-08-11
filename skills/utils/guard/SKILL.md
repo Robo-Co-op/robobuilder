@@ -20,17 +20,17 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "bash ${CLAUDE_SKILL_DIR}/../careful/bin/check-careful.sh"
+          command: "python \"${CLAUDE_PLUGIN_ROOT}/scripts/check_careful.py\""
           statusMessage: "Checking for destructive commands..."
     - matcher: "Edit"
       hooks:
         - type: command
-          command: "bash ${CLAUDE_SKILL_DIR}/../freeze/bin/check-freeze.sh"
+          command: "python \"${CLAUDE_PLUGIN_ROOT}/scripts/check_freeze.py\""
           statusMessage: "Checking freeze boundary..."
     - matcher: "Write"
       hooks:
         - type: command
-          command: "bash ${CLAUDE_SKILL_DIR}/../freeze/bin/check-freeze.sh"
+          command: "python \"${CLAUDE_PLUGIN_ROOT}/scripts/check_freeze.py\""
           statusMessage: "Checking freeze boundary..."
 origin: gstack
 upstream: https://github.com/garrytan/gstack
@@ -38,7 +38,7 @@ bootcamp_module: M6.compounding-engineering
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (utils)
-> - **What**: |
+> - **What**: Full safety mode: destructive command warnings + directory-scoped edits. Combines /careful (warns before rm -rf, DROP TABLE, force-push, etc.) with /freeze (blocks edits outside a specified directory). Use for maximum safety when touching prod or debugging live systems
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:context-save
 > - **Bootcamp**: M6.compounding-engineering
@@ -54,10 +54,12 @@ This is the combination of `/careful` + `/freeze` in a single command.
 
 ## RoboBuilder Runtime Notes
 
-Use `bin/robobuilder-paths` for local state. Full contract: `docs/RUNTIME.md`.
+Use `"$RB/robobuilder-paths"` for local state. Full contract: `docs/RUNTIME.md`.
 
-**Dependency note:** This skill references hook scripts from the sibling `/careful`
-and `/freeze` skill directories. Both must be installed (they are installed together
+**Enforcement:** the hooks are `scripts/check_careful.py` and `scripts/check_freeze.py`
+in this plugin. They used to point at sibling `careful/` and `freeze/` skill directories
+that exist in no robobuilder edition, so guard announced two protections and enforced
+nothing. (Historical note, kept because the failure was invisible: they were installed together
 with the companion safety skills).
 
 ## Setup
@@ -77,8 +79,10 @@ echo "$FREEZE_DIR"
 
 2. Ensure trailing slash and save to the freeze state file:
 ```bash
+RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
+[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
 FREEZE_DIR="${FREEZE_DIR%/}/"
-eval "$(bin/robobuilder-paths)"
+eval "$("$RB/robobuilder-paths")"
 STATE_DIR="$ROBOBUILDER_STATE_ROOT"
 mkdir -p "$STATE_DIR"
 echo "$FREEZE_DIR" > "$STATE_DIR/freeze-dir.txt"
@@ -89,9 +93,11 @@ Tell the user:
 - "**Guard mode active.** Two protections are now running:"
 - "1. **Destructive command warnings** — rm -rf, DROP TABLE, force-push, etc. will warn before executing (you can override)"
 - "2. **Edit boundary** — file edits restricted to `<path>/`. Edits outside this directory are blocked."
-- "To remove the edit boundary, run `/unfreeze`. To deactivate everything, end the session."
+- "To remove the edit boundary, unset `ROBOBUILDER_FREEZE_DIR` or start a new session. To deactivate everything, end the session." There is no `/unfreeze` command in any robobuilder edition; the boundary lives in that variable.
 
 ## What's protected
 
-See `/careful` for the full list of destructive command patterns and safe exceptions.
-See `/freeze` for how edit boundary enforcement works.
+The full list of destructive command patterns lives in `scripts/check_careful.py`, and
+the boundary logic in `scripts/check_freeze.py`. Both are covered by
+`scripts/tests/test_guard_hooks.py`, which tests that they *block*, not merely that they
+exist.
