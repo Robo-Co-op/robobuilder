@@ -118,3 +118,13 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 [ ] Code is minimal for this test
 [ ] No speculative features added
 ```
+
+Run the checklist yourself each cycle, and dispatch the **`tdd-pair`** agent when you
+catch yourself about to skip red — code written before a failing test, a test edited
+to match code that already exists, a "just this once" green-to-green step. It returns
+OK / VIOLATION per check and nothing else, so it costs one short call.
+
+Self-checking is the weak link here by construction: the agent writing the code is the
+agent deciding whether it wrote a test first, and that is the one judgement it has an
+incentive to get wrong. `tdd-pair` exists to be the second pair of eyes; a cycle where
+you were tempted and did not ask is exactly the cycle to ask.

@@ -1918,6 +1918,13 @@ echo "Drift repaired: package.json synced to $REPAIR_VERSION. No version bump pe
 
 ## Step 13: CHANGELOG (auto-generate)
 
+For a branch with more than a handful of commits, dispatch the **`release-notes-writer`**
+agent for steps 2-4 below. Grouping commits by theme and expanding terse messages from the
+diff is exactly its job, and doing it in a subagent keeps the full `git log` and `git diff`
+out of this context — you only need its grouped summary to write the entry. Its own
+description names `/ship` as where it belongs. Do the rest of this step yourself: the
+agent drafts, you decide what ships.
+
 1. Read `CHANGELOG.md` header to know the format.
 
 2. **First, enumerate every commit on the branch:**
