@@ -28,7 +28,7 @@ bootcamp_module: M6.compounding-engineering
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (utils)
-> - **What**: |
+> - **What**: Restore working context saved earlier by /context-save. Loads the most recent saved state (across all branches by default) so you can pick up where you left off — even across Conductor workspace handoffs
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:context-save
 > - **Bootcamp**: M6.compounding-engineering
@@ -47,7 +47,10 @@ Parse the user's input:
 
 - `/context-restore` → load the most recent saved context (any branch)
 - `/context-restore <title-fragment-or-number>` → load a specific saved context
-- `/context-restore list` → tell the user "Use `/context-save list` — listing
+- `/context-restore <number>` → the number indexes the list printed by
+  `/robobuilder:context-save list`; restore never prints a list of its own, so run that
+  first if you do not have one on screen.
+- `/context-restore list` → tell the user "Use `/robobuilder:context-save list` — listing
   lives on the save side" and exit. No mode detection here.
 
 ---

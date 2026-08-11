@@ -26,7 +26,11 @@ Extract and formalize domain terminology from the current conversation into a co
    - Different words used for the same concept (synonyms)
    - Vague or overloaded terms
 3. **Propose a canonical glossary** with opinionated term choices
-4. **Write to `UBIQUITOUS_LANGUAGE.md`** in the working directory using the format below
+4. **Write to `UBIQUITOUS_LANGUAGE.md`** in the working directory using the format below.
+   Who reads it: this skill on re-invocation, and every skill whose instructions say "use
+   the project's domain glossary vocabulary" — `to-prd`, `tdd`, `zoom-out`,
+   `plan-eng-review`, `improve-codebase-architecture`. They look for a glossary by
+   description rather than by filename, so keep it at this path for them to find.
 5. **Output a summary** inline in the conversation
 
 ## Output Format

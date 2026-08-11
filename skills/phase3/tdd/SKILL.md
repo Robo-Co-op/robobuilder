@@ -119,12 +119,15 @@ After all tests pass, look for [refactor candidates](refactoring.md):
 [ ] No speculative features added
 ```
 
-Run the checklist yourself each cycle, and dispatch the **`tdd-pair`** agent when you
-catch yourself about to skip red — code written before a failing test, a test edited
-to match code that already exists, a "just this once" green-to-green step. It returns
-OK / VIOLATION per check and nothing else, so it costs one short call.
+Run the checklist yourself each cycle. Dispatch the **`tdd-pair`** agent on **any cycle
+that produced code without a new failing test first** — that is an observable fact about
+the cycle, not a judgement call. It returns OK / VIOLATION per check and nothing else, so
+it costs one short call.
 
-Self-checking is the weak link here by construction: the agent writing the code is the
-agent deciding whether it wrote a test first, and that is the one judgement it has an
-incentive to get wrong. `tdd-pair` exists to be the second pair of eyes; a cycle where
-you were tempted and did not ask is exactly the cycle to ask.
+The trigger has to be a fact rather than a feeling. Self-checking is the weak link here by
+construction: the agent writing the code is the agent deciding whether it wrote a test
+first, and that is the one judgement it has an incentive to get wrong. Dispatching only
+"when you notice you are cutting corners" would gate the independent check on exactly the
+self-judgement it exists to replace — so it would go unused in precisely the cycles that
+needed it. The other shapes to watch for: a test edited to match code that already exists,
+and a "just this once" green-to-green step.

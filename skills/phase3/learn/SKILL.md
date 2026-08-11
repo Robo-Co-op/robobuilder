@@ -26,7 +26,7 @@ bootcamp_module: M3.code.implement
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase3)
-> - **What**: |
+> - **What**: Manage project learnings. Review, search, prune, and export what RoboBuilder has learned across sessions
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:write-a-skill
 > - **Bootcamp**: M3.code.implement

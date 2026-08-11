@@ -24,7 +24,7 @@ bootcamp_module: M3.code.implement
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase3)
-> - **What**: |
+> - **What**: Fast headless browser for QA testing and site dogfooding. Navigate any URL, interact with elements, verify page state, diff before/after actions, take annotated screenshots, check responsive layouts, test forms and uploads, handle dialogs, and assert element states. ~100ms per command
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:canary, /robobuilder:cso
 > - **Bootcamp**: M3.code.implement
@@ -140,14 +140,14 @@ Two paths, pick the cleaner one:
 # HTML file on disk → goto file:// (absolute, or cwd-relative)
 $B goto file:///tmp/report.html
 $B goto file://./docs/page.html        # cwd-relative
-$B goto file://~/Documents/page.html   # home-relative
+$B goto file://$PWD/page.html          # under cwd -- see the scope rule below
 
 # HTML generated in memory → load-html reads the file into setContent
 echo '<div class="tweet">hello</div>' > /tmp/tweet.html
 $B load-html /tmp/tweet.html
 ```
 
-`goto file://...` is usually cleaner (URL is saved in state, relative asset URLs resolve against the file's dir, scale changes replay naturally). `load-html` uses `page.setContent()` — URL stays `about:blank`, but the content survives `viewport --scale` via in-memory replay. Both are scoped to files under cwd or `$TMPDIR`.
+`goto file://...` is usually cleaner (URL is saved in state, relative asset URLs resolve against the file's dir, scale changes replay naturally). `load-html` uses `page.setContent()` — URL stays `about:blank`, but the content survives `viewport --scale` via in-memory replay. Both are scoped to files under cwd or `$TMPDIR`. A path outside that scope is refused, so `file://~/...` examples do not work — use a path under the working directory.
 
 ### 13. Retina screenshots (deviceScaleFactor)
 ```bash
@@ -384,7 +384,7 @@ $B prettyscreenshot --cleanup --scroll-to ".pricing" --width 1440 ~/Desktop/hero
 | Command | Description |
 |---------|-------------|
 | `attrs <sel|@ref>` | Element attributes as JSON |
-| `cdp <Domain.method> [json-params]` | Raw Chrome DevTools Protocol method dispatch. Deny-default: only methods enumerated in `browse/src/cdp-allowlist.ts` (CDP_ALLOWLIST const) are reachable; any other method 403s. Each allowlist entry declares scope (tab vs browser) and output (trusted vs untrusted) — untrusted methods (data-exfil-shaped, e.g. Network.getResponseBody) get UNTRUSTED-envelope wrapped output. To discover allowed methods: read `browse/src/cdp-allowlist.ts`. Example: `$B cdp Page.getLayoutMetrics`. |
+| `cdp <Domain.method> [json-params]` | Raw Chrome DevTools Protocol method dispatch. Deny-default: only methods enumerated in the browse tool's own CDP allowlist are reachable; any other method 403s. Each allowlist entry declares scope (tab vs browser) and output (trusted vs untrusted) — untrusted methods (data-exfil-shaped, e.g. Network.getResponseBody) get UNTRUSTED-envelope wrapped output. To discover allowed methods: run `$B cdp --list`. (The old instruction pointed at `browse/src/cdp-allowlist.ts`, a path from the gstack upstream that ships in no robobuilder edition.) Example: `$B cdp Page.getLayoutMetrics`. |
 | `console [--clear|--errors]` | Console messages (--errors filters to error/warning) |
 | `cookies` | All cookies as JSON |
 | `css <sel> <prop>` | Computed CSS value |
@@ -410,7 +410,7 @@ $B prettyscreenshot --cleanup --scroll-to ".pricing" --width 1440 ~/Desktop/hero
 ### Snapshot
 | Command | Description |
 |---------|-------------|
-| `snapshot [flags]` | Accessibility tree with @e refs for element selection. Flags: -i interactive only, -c compact, -d N depth limit, -s sel scope, -D diff vs previous, -a annotated screenshot, -o path output, -C cursor-interactive @c refs |
+| `snapshot [flags]` | Accessibility tree with @e refs for element selection. Flags: -i interactive only, -c compact, -d N depth limit, -s sel scope, -D diff vs previous, -a annotated screenshot, -o path output, -C cursor-interactive @c refs, -H/--heatmap <json> color-coded overlay |
 
 ### Meta
 | Command | Description |

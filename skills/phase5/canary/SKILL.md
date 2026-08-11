@@ -24,7 +24,7 @@ bootcamp_module: M3.code.ship
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase5)
-> - **What**: |
+> - **What**: Post-deploy canary monitoring. Watches the live app for console errors, performance regressions, and page failures using the browse daemon. Takes periodic screenshots, compares against pre-deploy baselines, and alerts on anomalies
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:land-and-deploy, /robobuilder:browse
 > - **Bootcamp**: M3.code.ship

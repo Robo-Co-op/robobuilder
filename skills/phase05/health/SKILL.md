@@ -26,7 +26,7 @@ bootcamp_module: M3.code.investigate
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase05)
-> - **What**: |
+> - **What**: Code quality dashboard. Wraps existing project tools (type checker, linter, test runner, dead code detector, shell linter), computes a weighted composite 0-10 score, and tracks trends over time
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:zoom-out, /robobuilder:diagnose
 > - **Bootcamp**: M3.code.investigate

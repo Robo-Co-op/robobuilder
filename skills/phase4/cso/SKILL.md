@@ -29,7 +29,7 @@ bootcamp_module: M3.code.review
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase4)
-> - **What**: |
+> - **What**: Chief Security Officer mode. Infrastructure-first security audit: secrets archaeology, dependency supply chain, CI/CD pipeline security, LLM/AI security, skill supply chain scanning, plus OWASP Top 10, STRIDE threat modeling, and active verification. Two modes: daily (zero-noise, 8/10 confidence gate) and comprehensive (monthly deep scan, 2/10 bar). Trend tracking across audit runs
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:diff-review, /robobuilder:cross-review
 > - **Bootcamp**: M3.code.review
@@ -121,7 +121,10 @@ Search for relevant learnings from previous sessions:
 ```bash
 RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
 [ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
-_CROSS_PROJ=$("$RB/robobuilder-config" get cross_project_learnings 2>/dev/null || echo "unset")
+# robobuilder-config exits 0 with EMPTY output for a missing key, so `|| echo` never
+# fires. Test the value, not the exit code.
+_CROSS_PROJ=$("$RB/robobuilder-config" get cross_project_learnings 2>/dev/null)
+[ -z "$_CROSS_PROJ" ] && _CROSS_PROJ="unset"
 echo "CROSS_PROJECT: $_CROSS_PROJ"
 if [ "$_CROSS_PROJ" = "true" ]; then
   "$RB/robobuilder-learnings-search" --limit 10 --cross-project 2>/dev/null || true
@@ -141,7 +144,10 @@ Options:
 - A) Enable cross-project learnings (recommended)
 - B) Keep learnings project-scoped only
 
-If A: run `"$RB/robobuilder-config" set cross_project_learnings true`
+If A: run `"$RB/robobuilder-config" set cross_project_learnings true`, **then actually
+read cross-project learnings in this run** — the flag is persisted and permanently
+suppresses this prompt, so consenting and then getting nothing is a one-way trade the
+user cannot tell happened.
 If B: run `"$RB/robobuilder-config" set cross_project_learnings false`
 
 Then re-run the search with the appropriate flag.
@@ -511,6 +517,12 @@ When a finding is VERIFIED, search the entire codebase for the same vulnerabilit
 3. Report variants as separate findings linked to the original: "Variant of Finding #N"
 
 **Parallel Finding Verification:**
+
+Give each verifier the **commit** the finding refers to, not just a working-tree
+`file:line`. A history finding ("AWS key in git history") points at a blob that the
+working tree no longer contains, so a verifier handed `.env:3` alone looks at today's file,
+finds nothing, and reports the finding as unreproducible — an absent measurement read as
+a clean result. Locators below are written `path:line @commit` for that reason.
 
 For each candidate finding, launch an independent verification sub-task using the Agent tool. The verifier has fresh context and cannot see the initial scan's reasoning — only the finding itself and the FP filtering rules.
 

@@ -23,7 +23,7 @@ bootcamp_module: M3.code.ship
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase5)
-> - **What**: |
+> - **What**: Land and deploy workflow. Merges the PR, waits for CI and deploy, verifies production health via canary checks. Takes over after /ship creates the PR
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:ship, /robobuilder:canary
 > - **Bootcamp**: M3.code.ship

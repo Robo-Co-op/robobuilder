@@ -29,7 +29,7 @@ bootcamp_module: M3.code.ship
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase5)
-> - **What**: |
+> - **What**: Ship workflow: detect + merge base branch, run tests, review diff, bump the version, update CHANGELOG, commit, push, create PR
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:land-and-deploy, /robobuilder:canary, /robobuilder:blueprint-sync
 > - **Bootcamp**: M3.code.ship

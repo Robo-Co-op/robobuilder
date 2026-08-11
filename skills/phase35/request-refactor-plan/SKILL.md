@@ -1,12 +1,12 @@
 ---
 name: request-refactor-plan
-description: "[P3.5-2 Refactor] Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue. Use when user wants to plan a refactor, create a refactoring RFC, or break a refactor into safe incremental steps."
+description: "[P3.5-2 Refactor] Create a detailed refactor plan with tiny commits via user interview, then file it on the project's configured issue tracker. Use when user wants to plan a refactor, create a refactoring RFC, or break a refactor into safe incremental steps."
 origin: jin-custom
 bootcamp_module: M3.code.refactor
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase35)
-> - **What**: Create a detailed refactor plan with tiny commits via user interview, then file it as a GitHub issue
+> - **What**: Create a detailed refactor plan with tiny commits via user interview, then file it on the project's configured issue tracker
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:improve-codebase-architecture, /robobuilder:tdd
 > - **Bootcamp**: M3.code.refactor

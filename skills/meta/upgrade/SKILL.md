@@ -105,6 +105,10 @@ User: y
 
 ## Anti-pattern
 - Don't auto-apply without showing diffs (silent breakage is worse than out-of-date).
+- **Don't present the per-change review as selective application.** `pull --ff-only` is
+  all-or-nothing: skipping a listed change does not exclude it, it aborts the whole
+  upgrade. Say that when showing the diffs, so "skip this one" is understood as "stop
+  here" rather than as a partial apply that silently did not happen.
 - Don't pull without `--ff-only` (merge commits in a plugin repo are confusing).
 - Don't skip the tune-claude-md prompt if baseline changed — that's the whole point of the team baseline.
 

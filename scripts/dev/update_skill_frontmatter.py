@@ -155,9 +155,26 @@ def split_frontmatter(text: str) -> tuple[str, str]:
 
 
 def extract_field(frontmatter: str, key: str) -> str | None:
-    for line in frontmatter.splitlines():
-        if line.startswith(f"{key}:"):
-            return line.split(":", 1)[1].strip().strip("\"'")
+    """Read one frontmatter field, including YAML block scalars.
+
+    A line-based read returned the literal indicator ("|" or ">") for a block
+    scalar, so every skill whose description used one got a pedagogy header
+    reading `**What**: |`. That is visible in several shipped skills.
+    """
+    lines = frontmatter.splitlines()
+    for i, line in enumerate(lines):
+        if not line.startswith(f"{key}:"):
+            continue
+        value = line.split(":", 1)[1].strip()
+        if value in ("|", ">", "|-", ">-", "|+", ">+"):
+            body = []
+            for cont in lines[i + 1:]:
+                if cont.strip() and not cont.startswith((" ", "\t")):
+                    break
+                body.append(cont.strip())
+            joined = " ".join(b for b in body if b).strip()
+            return joined or None
+        return value.strip("\"'") or None
     return None
 
 

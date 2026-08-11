@@ -15,9 +15,11 @@ benefits-from: [grill-me]
 allowed-tools:
   - Read
   - Write
+  - Edit          # Step "Plan File Review Report" deletes and rewrites a section
   - Grep
   - Glob
   - AskUserQuestion
+  - Agent          # the Codex-absent fallback dispatches an independent subagent
   - Bash
   - WebSearch
 triggers:
@@ -30,7 +32,7 @@ bootcamp_module: M3.code.design
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (phase1)
-> - **What**: |
+> - **What**: Eng manager-mode plan review. Lock in the execution plan — architecture, data flow, diagrams, edge cases, test coverage, performance. Walks through issues interactively with opinionated recommendations
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:to-prd, /robobuilder:tdd
 > - **Bootcamp**: M3.code.design
@@ -158,7 +160,7 @@ Before reviewing anything, answer these questions:
    - How will users download or install it (GitHub Releases, package manager, container registry)?
    If the plan defers distribution, flag it explicitly in the "NOT in scope" section — don't let it silently drop.
 
-If the complexity check triggers (8+ files or 2+ new classes/services), STOP before any review-section work. Call AskUserQuestion: name what's overbuilt, propose a minimal version that achieves the core goal, ask whether to reduce or proceed as-is. The AskUserQuestion call is a tool_use, not prose — call the tool directly.
+If the complexity check triggers — **more than 8 files, or more than 2 new classes/services**, matching the definition above rather than restating it as 8+/2+ — STOP before any review-section work. Call AskUserQuestion: name what's overbuilt, propose a minimal version that achieves the core goal, ask whether to reduce or proceed as-is. The AskUserQuestion call is a tool_use, not prose — call the tool directly.
 
 **STOP.** Do NOT proceed to Section 1 (Architecture review), edit the plan file with a proposed scope reduction, or call ExitPlanMode until the user responds. Naming the 80% solution in chat prose and continuing — or loading the AskUserQuestion schema via ToolSearch and then never invoking it — is the failure mode this gate exists to prevent.
 
@@ -181,7 +183,10 @@ Search for relevant learnings from previous sessions:
 ```bash
 RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
 [ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
-_CROSS_PROJ=$("$RB/robobuilder-config" get cross_project_learnings 2>/dev/null || echo "unset")
+# robobuilder-config exits 0 with EMPTY output for a missing key, so `|| echo` never
+# fires. Test the value, not the exit code, or "unset" and "set to empty" collapse.
+_CROSS_PROJ=$("$RB/robobuilder-config" get cross_project_learnings 2>/dev/null)
+[ -z "$_CROSS_PROJ" ] && _CROSS_PROJ="unset"
 echo "CROSS_PROJECT: $_CROSS_PROJ"
 if [ "$_CROSS_PROJ" = "true" ]; then
   "$RB/robobuilder-learnings-search" --limit 10 --cross-project 2>/dev/null || true
@@ -735,7 +740,14 @@ Substitute values from the Completion Summary:
 
 ## Review Readiness Dashboard
 
-After completing the review, read the review log and config to display the dashboard.
+After completing the review, read the review log to display the dashboard.
+
+**Rows for reviews this installation does not have.** `/plan-ceo-review`,
+`/plan-design-review` and `/plan-devex-review` are sibling skills from the gstack
+upstream that robobuilder does not ship. Their rows can never have a run. Render them as
+**`— not installed`**, not as a blank or "never run" status: a blank reads as "this review
+was skipped", which is a different and much worse claim than "this review does not exist
+here."
 
 ```bash
 RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
@@ -907,16 +919,22 @@ After displaying the Review Readiness Dashboard, check if additional reviews wou
 
 **Suggest /plan-design-review if UI changes exist and no design review has been run** — detect from the test diagram, architecture review, or any section that touched frontend components, CSS, views, or user-facing interaction flows. If an existing design review's commit hash shows it predates significant changes found in this eng review, note that it may be stale.
 
-**Mention /plan-ceo-review if this is a significant product change and no CEO review exists** — this is a soft suggestion, not a push. CEO review is optional. Only mention it if the plan introduces new user-facing features, changes product direction, or expands scope substantially.
+**If this is a significant product change** — new user-facing features, a change in product direction, or a substantial scope expansion — say so plainly and suggest a second pair of human eyes before implementation. Do not name `/plan-ceo-review`: robobuilder does not ship it, and pointing at a command that does not exist is worse than pointing at nothing.
 
 **Note staleness** of existing CEO or design reviews if this eng review found assumptions that contradict them, or if the commit hash shows significant drift.
 
 **If no additional reviews are needed** (or `skip_eng_review` is `true` in the dashboard config, meaning this eng review was optional): state "All relevant reviews complete. Run /ship when ready."
 
-Use AskUserQuestion with only the applicable options:
-- **A)** Run /plan-design-review (only if UI scope detected and no design review exists)
-- **B)** Run /plan-ceo-review (only if significant product change and no CEO review exists)
-- **C)** Ready to implement — run /ship when done
+Use AskUserQuestion with only the applicable options **that this installation can
+actually run**. `/plan-design-review` and `/plan-ceo-review` are not shipped by
+robobuilder, so do not offer them — offering a command the user cannot invoke wastes the
+turn and reads as a broken skill.
+
+- **A)** Run `/robobuilder:grill-me` on the open design questions this review surfaced
+  (only if any were left unresolved)
+- **B)** Run `/robobuilder:cso` (only if the plan touches auth, payments, secrets or
+  external input)
+- **C)** Ready to implement — run `/robobuilder:ship` when done
 
 ## Unresolved decisions
 If the user does not respond to an AskUserQuestion or interrupts to move on, note which decisions were left unresolved. At the end of the review, list these as "Unresolved decisions that may bite you later" — never silently default to an option.

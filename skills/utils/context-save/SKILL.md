@@ -28,7 +28,7 @@ bootcamp_module: M6.compounding-engineering
 bootcamp_url: https://www.notion.so/Claude-34e5a7e135d2807daec1d83e41d93504
 ---
 > **robobuilder pedagogy** (utils)
-> - **What**: |
+> - **What**: Save working context. Captures git state, decisions made, and remaining work so any future session can pick up without losing a beat
 > - **When**: see the description above for trigger keywords; details in the body below.
 > - **See Also**: /robobuilder:context-restore, /robobuilder:handoff
 > - **Bootcamp**: M6.compounding-engineering

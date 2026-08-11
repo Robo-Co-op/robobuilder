@@ -266,7 +266,10 @@ If a significant design decision was made during implementation that diverged fr
 {Trade-offs and follow-up work}
 ```
 
-Write to `docs/decisions/ADR-{N}.md` or `DECISIONS.md`.
+Write to `docs/adr/NNNN-slug.md` — the convention `setup` establishes and
+`grill-with-docs/ADR-FORMAT.md` documents. (This used to say `docs/decisions/ADR-{N}.md`
+or `DECISIONS.md`, so blueprint-sync wrote ADRs where nothing else in the suite looks
+for them.)
 
 ---
 
