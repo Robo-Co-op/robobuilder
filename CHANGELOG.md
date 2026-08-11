@@ -2,6 +2,41 @@
 
 All notable changes to robobuilder.
 
+## [1.7.0] — 2026-08-11
+
+Eleven skills persisted nothing when robobuilder was installed the supported way.
+
+### Fixed
+- **The runtime contract itself.** `docs/RUNTIME.md` prescribed calling the helpers as
+  `bin/robobuilder-paths` — a bare relative path. But `bin/` ships *inside the plugin*,
+  is never copied into the user's project and never added to `PATH`, and
+  `settings.json.example` pins the shell's cwd to the user's project. The bare form
+  resolves only when the working directory happens to be a checkout of this repo, which
+  the supported install never produces.
+
+  Eleven skills followed that contract across 124 call sites: `health`,
+  `plan-eng-review`, `browse`, `learn`, `cso`, `canary`, `land-and-deploy`, `ship`,
+  `context-save`, `context-restore`, `guard`.
+
+  The failure was silent by construction. `eval "$(missing-command)"` leaves `SLUG` and
+  `ROBOBUILDER_STATE_ROOT` **empty and exits 0**, so every read returned nothing —
+  indistinguishable from a genuinely empty store — and every write landed in
+  `/projects/…` and failed. Learnings, review records and context snapshots appeared to
+  save and did not.
+
+  Helpers are now addressed through `$RB`, rooted at `${CLAUDE_PLUGIN_ROOT}` (the form
+  `hooks/hooks.json` and the meta skills already use), and every shell block that uses
+  `$RB` defines it and refuses to continue when the helpers are absent.
+
+### Added
+- Tests on all three counts, because the path alone was never the point: no bare
+  invocation, no `$RB` without its definition, no `$RB` without the existence check, and
+  `docs/RUNTIME.md` must show both the bootstrap and the guard
+
+Found by an execution sweep over the 46 skills that had never been run: 114 findings
+raised, 63 refuted by independent verifiers, 51 confirmed. This was the root of two of
+the eleven high-severity ones.
+
 ## [1.6.0] — 2026-08-11
 
 Five of the nine bundled agents shipped with no skill calling them. They were
