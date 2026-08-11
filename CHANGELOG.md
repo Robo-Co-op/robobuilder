@@ -2,6 +2,41 @@
 
 All notable changes to robobuilder.
 
+## [1.6.0] — 2026-08-11
+
+Five of the nine bundled agents shipped with no skill calling them. They were
+installed and invisible — reachable only if a user typed their name — and three of
+them named the skill they belong to in their own description while that skill never
+dispatched them.
+
+### Fixed
+- `requirements-validator` — "Use after `/to-prd` is generated" → now dispatched by
+  `to-prd` on the draft, before publishing
+- `tdd-pair` — "Use whenever `/tdd` is invoked" → now dispatched by `tdd` at the point
+  where red gets skipped
+- `codebase-explorer` — "for the Phase 0.5 workflow" → now dispatched by `zoom-out`,
+  the Phase 0.5 skill, to build the map
+- `design-critic` — "Complements the interactive `/grill-me`" → now dispatched by
+  `grill-me` once the design is settled
+- `release-notes-writer` — "Use during `/ship`" → now dispatched by `ship` Step 13 to
+  group commits by theme
+
+Each is wired where its own description points, with the reason stated rather than
+just the call — an author is the worst reader of their own PRD, the agent deciding
+whether it wrote a test first has an incentive to get that wrong, and mapping or
+log-grouping belongs in a subagent to keep the reading out of the main context.
+
+### Added
+- Test: every agent in `agents/` must be dispatched by some skill. It strips fenced
+  blocks and blockquotes first, because `upgrade` renders a mock console diff naming
+  two of these agents as sample output — the first survey of this counted those as
+  dispatches and concluded only three agents were unwired, i.e. it would have blessed
+  the exact bug it exists to catch
+- Test: `plugin.json`'s agent list must match `agents/` on disk
+
+Found by running `zoom-out` and reading the map it produced: the agent whose job is
+building that map was the one `zoom-out` did not call.
+
 ## [1.5.1] — 2026-08-09
 
 Three unreachable audits, found by executing the skills' control flow rather than
