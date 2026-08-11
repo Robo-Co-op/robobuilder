@@ -2,6 +2,36 @@
 
 All notable changes to robobuilder.
 
+## [1.8.0] — 2026-08-11
+
+Closes out the execution sweep: all 51 confirmed findings are fixed.
+
+### Fixed
+- **`guard` enforced nothing.** It sold "full safety mode" while its three PreToolUse
+  hooks pointed at `careful/` and `freeze/` skill directories that exist in no
+  robobuilder edition. Both hooks are now implemented (`scripts/check_careful.py`,
+  `scripts/check_freeze.py`), fail closed on unparseable input, and are tested by
+  behaviour — 10 command cases, multi-edit escape, and a check that every declared hook
+  target resolves
+- **`learn`'s dedup kept the oldest entry.** It compared `new Date(e.ts)` and no writer
+  emits `ts`, so `NaN > NaN` was always false. Also: `AVG_CONFIDENCE` divided by zero
+  and printed `NaN` as a result, and an empty log reported `TOTAL: 0` as a measurement
+- **`to-issues` discarded its own HITL/AFK classification** at the publish step, and its
+  issue template had no Type field, so the classification had no output channel
+- **`plan-eng-review` offered `/office-hours`**, which exists nowhere, then re-checked
+  for a design doc that nothing writes — and read the inevitable miss as "user cancelled"
+- **`install-companions` advertised six presets and defined four**
+- 34 further defects: dangling command and doc references, unreachable `|| echo`
+  fallbacks after a helper that exits 0, a documented flag no phase branched on,
+  thresholds a skill stated two ways, and `tdd` gating its independent check on the
+  self-judgement that check exists to replace
+
+### Added
+- `scripts/tests/test_guard_hooks.py` — guard's hooks must block, not merely exist
+- Fixed `scripts/dev/update_skill_frontmatter.py`, which returned the literal YAML
+  block-scalar indicator; 11 shipped skills carried a pedagogy header reading
+  `**What**: |`. Regenerated all eleven
+
 ## [1.7.0] — 2026-08-11
 
 Eleven skills persisted nothing when robobuilder was installed the supported way.
