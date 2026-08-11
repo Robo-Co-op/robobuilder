@@ -20,17 +20,17 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "bash ${CLAUDE_SKILL_DIR}/../careful/bin/check-careful.sh"
+          command: "python \"${CLAUDE_PLUGIN_ROOT}/scripts/check_careful.py\""
           statusMessage: "Checking for destructive commands..."
     - matcher: "Edit"
       hooks:
         - type: command
-          command: "bash ${CLAUDE_SKILL_DIR}/../freeze/bin/check-freeze.sh"
+          command: "python \"${CLAUDE_PLUGIN_ROOT}/scripts/check_freeze.py\""
           statusMessage: "Checking freeze boundary..."
     - matcher: "Write"
       hooks:
         - type: command
-          command: "bash ${CLAUDE_SKILL_DIR}/../freeze/bin/check-freeze.sh"
+          command: "python \"${CLAUDE_PLUGIN_ROOT}/scripts/check_freeze.py\""
           statusMessage: "Checking freeze boundary..."
 origin: gstack
 upstream: https://github.com/garrytan/gstack
