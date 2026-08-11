@@ -11,7 +11,7 @@ description: |
   Proactively suggest when the user has a plan or design doc and is about to
   start coding — to catch architecture issues before implementation. (robobuilder-local)
   Voice triggers (speech-to-text aliases): "tech review", "technical review", "plan engineering review".
-benefits-from: [office-hours]
+benefits-from: [grill-me]
 allowed-tools:
   - Read
   - Write
@@ -104,58 +104,36 @@ skill before proceeding.
 
 Say to the user via AskUserQuestion:
 
-> "No design doc found for this branch. `/office-hours` produces a structured problem
-> statement, premise challenge, and explored alternatives — it gives this review much
-> sharper input to work with. Takes about 10 minutes. The design doc is per-feature,
-> not per-product — it captures the thinking behind this specific change."
+> "No design doc found for this branch. `/robobuilder:grill-me` walks the design
+> decision tree one question at a time and settles the branches nobody has decided yet —
+> it gives this review much sharper input to work with. Takes about 10 minutes."
 
 Options:
-- A) Run /office-hours now (we'll pick up the review right after)
+- A) Grill the design now (we'll pick up the review right after)
 - B) Skip — proceed with standard review
 
-If they skip: "No worries — standard review. If you ever want sharper input, try
-/office-hours first next time." Then proceed normally. Do not re-offer later in the session.
+If they skip: "No worries — standard review. If you ever want sharper input, run
+`/robobuilder:grill-me` first next time." Then proceed normally. Do not re-offer later in
+the session.
 
 If they choose A:
 
-Say: "Running /office-hours inline. Once the design doc is ready, I'll pick up
-the review right where we left off."
+Say: "Grilling the design inline. Once the decisions are settled, I'll pick up the review
+right where we left off."
 
-Read the `/office-hours` skill file at `skills/phase1/grill-me/SKILL.md` using the Read tool.
+Read `skills/phase1/grill-me/SKILL.md` with the Read tool and follow it to completion.
 
-**If unreadable:** Skip with "Could not load /office-hours — skipping." and continue.
+**If unreadable:** Skip with "Could not load grill-me — proceeding with standard review."
+and continue.
 
-Follow its instructions from top to bottom, **skipping these sections** (already handled by the parent skill):
-- Preamble (run first)
-- AskUserQuestion Format
-- Completeness Principle — Boil the Lake
-- Search Before Building
-- Contributor Mode
-- Completion Status Protocol
-- Telemetry (run last)
-- Step 0: Detect platform and base branch
-- Review Readiness Dashboard
-- Plan File Review Report
-- Prerequisite Skill Offer
-- Plan Status Footer
+**What this branch does and does not give you.** `grill-me` is an interview: it settles
+the design in the *conversation*, which is what the review needs. It writes **no file**.
+So do not re-check for a design doc afterwards — nothing in any robobuilder edition
+writes a `*-design-*.md` into the state root, and a re-check can only ever print "No
+design doc found", which reads as "the user cancelled" when in fact the branch worked.
 
-Execute every other section at full depth. When the loaded skill's instructions are complete, continue with the next step below.
-
-After /office-hours completes, re-run the design doc check:
-```bash
-RB="${CLAUDE_PLUGIN_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}/bin"
-[ -x "$RB/robobuilder-paths" ] || { echo "robobuilder helpers not found at $RB — state will not persist"; exit 1; }
-setopt +o nomatch 2>/dev/null || true  # zsh compat
-eval "$("$RB/robobuilder-slug" 2>/dev/null)"
-eval "$("$RB/robobuilder-paths")"
-BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' || echo 'no-branch')
-DESIGN=$(ls -t "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"/*-$BRANCH-design-*.md 2>/dev/null | head -1)
-[ -z "$DESIGN" ] && DESIGN=$(ls -t "$ROBOBUILDER_STATE_ROOT/projects/$SLUG"/*-design-*.md 2>/dev/null | head -1)
-[ -n "$DESIGN" ] && echo "Design doc found: $DESIGN" || echo "No design doc found"
-```
-
-If a design doc is now found, read it and continue the review.
-If none was produced (user may have cancelled), proceed with standard review.
+Carry the decisions forward from context and continue the review. If you want the
+reasoning on disk, `/robobuilder:to-prd` is the skill that writes it.
 
 ### Step 0: Scope Challenge
 Before reviewing anything, answer these questions:

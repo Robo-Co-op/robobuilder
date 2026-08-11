@@ -25,7 +25,15 @@ robobuilder covers the **development** workflow. Knowledge work (slides, docs, s
 
 Load `${CLAUDE_PLUGIN_ROOT}/company.yaml` → `companion_presets[<preset>]`.
 
-If the user did not pass an argument, ask which preset (show the list from `company.yaml`).
+If the user did not pass an argument, ask which preset — and **list the keys actually
+present in `company.yaml`**, not a list written here. The two drift: `marketing` and
+`ops` were advertised in this file and documented in `docs/COMPANION_SKILLS.md` while
+being absent from `company.yaml`, so the lookup resolved to nothing.
+
+**If the named preset is not a key in `companion_presets`, stop.** Say which presets do
+exist and let the user pick. Do not fall through to "install nothing" — an unresolved
+preset and a preset with an empty list produce the same silence, and the user is left
+believing a role's companions are installed when none are.
 
 ### Step 2 — Preview
 

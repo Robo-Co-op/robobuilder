@@ -169,8 +169,11 @@ if [ -f "$LEARN_FILE" ]; then
       try {
         const e = JSON.parse(line);
         const dk = (e.key||'') + '|' + (e.type||'');
-        const existing = seen.get(dk);
-        if (!existing || new Date(e.ts) > new Date(existing.ts)) seen.set(dk, e);
+        // learnings.jsonl is append-only, so a later line IS the newer entry.
+        // Do not compare timestamps: no writer emits one, so the old
+        // \`new Date(e.ts) > new Date(existing.ts)\` was NaN > NaN === false and
+        // kept the FIRST-seen (oldest) entry -- inverting "the latest wins".
+        seen.set(dk, e);
       } catch {}
     }
     const byType = {};
