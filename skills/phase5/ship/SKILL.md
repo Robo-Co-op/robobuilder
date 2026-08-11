@@ -527,7 +527,13 @@ Use AskUserQuestion:
 
 ## Step 6: Eval Suites (conditional)
 
-Evals are mandatory when prompt-related files change. Skip this step entirely if no prompt files are in the diff.
+Evals are mandatory when prompt-related files change. Skip this step entirely if no prompt files are in the diff — and go to **Step 7**, not past it. Steps 7 through 8.2 audit coverage, plan completion and scope drift; none of that is conditional on evals, and skipping evals must not skip them.
+
+> **Project-specific.** The paths, runner conventions, `bin/test-lane`, and
+> `EVAL_JUDGE_TIER` tiers below come from one Rails codebase. They will match
+> nothing in most repos, which is the intended outcome — the step then costs one
+> `git diff` and hands off to Step 7. Adapt the patterns if your project has an
+> eval suite of its own.
 
 **1. Check if the diff touches prompt-related files:**
 
@@ -544,7 +550,7 @@ Match against these patterns (from CLAUDE.md):
 - `config/system_prompts/*.txt`
 - `test/evals/**/*` (eval infrastructure changes affect all suites)
 
-**If no matches:** Print "No prompt-related files changed — skipping evals." and continue to Step 9.
+**If no matches:** Print "No prompt-related files changed — skipping evals." and continue to Step 7.
 
 **2. Identify affected eval suites:**
 
@@ -574,7 +580,7 @@ If multiple suites need to run, run them sequentially (each needs a test lane). 
 **4. Check results:**
 
 - **If any eval fails:** Show the failures, the cost dashboard, and **STOP**. Do not proceed.
-- **If all pass:** Note pass counts and cost. Continue to Step 9.
+- **If all pass:** Note pass counts and cost. Continue to Step 7.
 
 **5. Save eval output** — include eval results and cost dashboard in the PR body (Step 19).
 
@@ -1525,7 +1531,7 @@ Output a summary header: `Pre-Landing Review: N issues (X critical, Y informatio
 
 7. **After all fixes (auto + user-approved):**
    - If ANY fixes were applied: commit fixed files by name (`git add <fixed-files> && git commit -m "fix: pre-landing review fixes"`), then **STOP** and tell the user to run `/ship` again to re-test.
-   - If no fixes applied (all ASK items skipped, or no issues found): continue to Step 12.
+   - If no fixes applied (all ASK items skipped, or no issues found): continue to Step 10.
 
 8. Output summary: `Pre-Landing Review: N issues — M auto-fixed, K asked (J fixed, L skipped)`
 
@@ -1564,7 +1570,7 @@ Save the review output — it goes into the PR body in Step 19.
 
 Parse the LAST line as JSON.
 
-If `total` is 0, skip this step silently. Continue to Step 12.
+If `total` is 0, skip this step silently. Continue to Step 11.
 
 Otherwise, print: `+ {total} Greptile comments ({valid_actionable} valid, {already_fixed} already fixed, {false_positive} FP)`.
 
@@ -1591,7 +1597,7 @@ For each comment in `comments`:
 
 **SUPPRESSED:** Skip silently — these are known false positives from previous triage.
 
-**After all comments are resolved:** If any fixes were applied, the tests from Step 5 are now stale. **Re-run tests** (Step 5) before continuing to Step 12. If no fixes were applied, continue to Step 12.
+**After all comments are resolved:** If any fixes were applied, the tests from Step 5 are now stale. **Re-run tests** (Step 5) before continuing to Step 11. If no fixes were applied, continue to Step 11.
 
 ---
 
