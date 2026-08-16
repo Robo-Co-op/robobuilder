@@ -292,6 +292,22 @@ def test_stylesheets_fetch_nothing_from_a_third_party_host():
         assert not external, f"{css.name} fetches from another origin: {external}"
 
 
+@pytest.mark.parametrize("locale", sorted(LOCALES))
+def test_page_ships_no_script(locale):
+    """site/vercel.json serves the page under script-src 'none'.
+
+    That header is a promise the pages have to keep. A script added later would
+    be silently blocked in production while still working in a local file
+    preview, which is the worst way to find out.
+    """
+    html = LOCALES[locale].read_text(encoding="utf-8")
+    assert "<script" not in html.lower(), (
+        f"the {locale} page contains a <script>, but the site is served under "
+        "script-src 'none' -- it would be blocked in production. Either the page "
+        "drops the script or site/vercel.json stops promising there isn't one."
+    )
+
+
 def test_both_locales_inline_the_same_diagram():
     """The graph is inlined per page so it inherits the theme tokens.
 
