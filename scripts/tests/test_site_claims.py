@@ -252,6 +252,72 @@ def test_no_claim_goes_unused():
     )
 
 
+# Anything the browser must fetch to render the page. Hyperlinks are excluded on
+# purpose: <a href="https://github.com/..."> is the point of the page, not a
+# third-party dependency.
+SUBRESOURCE = re.compile(
+    r'(?:<link\b[^>]*\bhref|<(?:script|img|iframe|source|video|audio)\b[^>]*\bsrc)="([^"]+)"',
+    re.IGNORECASE,
+)
+CSS_URL = re.compile(r"url\(\s*['\"]?([^'\")]+)", re.IGNORECASE)
+
+
+@pytest.mark.parametrize("locale", sorted(LOCALES))
+def test_page_fetches_nothing_from_a_third_party_host(locale):
+    """The site must render with no request leaving our own origin.
+
+    Fonts are self-hosted for this reason, and the stylesheet says so. A CDN
+    <link> added later would silently break that promise: the page still looks
+    right in the browser of whoever added it, so nothing surfaces the change.
+    """
+    html = LOCALES[locale].read_text(encoding="utf-8")
+    external = [
+        ref
+        for ref in SUBRESOURCE.findall(html)
+        if ref.startswith(("http://", "https://", "//"))
+    ]
+    assert not external, (
+        f"the {locale} page fetches subresources from another origin: {external}. "
+        "Everything the page needs to render ships in this repo."
+    )
+
+
+def test_stylesheets_fetch_nothing_from_a_third_party_host():
+    for css in sorted((SITE / "assets").glob("*.css")):
+        external = [
+            ref
+            for ref in CSS_URL.findall(css.read_text(encoding="utf-8"))
+            if ref.startswith(("http://", "https://", "//"))
+        ]
+        assert not external, f"{css.name} fetches from another origin: {external}"
+
+
+def test_both_locales_inline_the_same_diagram():
+    """The graph is inlined per page so it inherits the theme tokens.
+
+    Inlining means two copies, and two copies drift. If the diagram changes,
+    it changes in both places or this fails.
+    """
+    svgs = {}
+    for locale, path in LOCALES.items():
+        if not path.exists():
+            continue
+        html = path.read_text(encoding="utf-8")
+        # The favicon is an inline SVG inside a data: URI. It is an attribute
+        # value, not a document node, so drop those before looking for the diagram.
+        html = re.sub(r'data:image/svg\+xml,[^"\']*', "", html)
+        found = re.findall(r"<svg\b.*?</svg>", html, re.DOTALL)
+        assert len(found) == 1, f"the {locale} page has {len(found)} inline SVGs, expected 1"
+        # The aria-label is deliberately translated; the geometry is not.
+        svgs[locale] = re.sub(r'\saria-label="[^"]*"', "", found[0])
+
+    distinct = set(svgs.values())
+    assert len(distinct) == 1, (
+        "the inline diagram has drifted between locales: "
+        f"{sorted(svgs)} do not share identical markup."
+    )
+
+
 def test_locales_assert_the_same_facts():
     """Translation is where a stale number survives: one locale gets updated, one doesn't."""
     per_locale = {
