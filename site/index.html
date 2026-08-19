@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>robobuilder — reliability lives in the edges</title>
+<meta name="description" content="Robo Co-op's development skill system for Claude Code. Never let the agent that wrote the code decide whether it's good enough.">
+<meta property="og:title" content="robobuilder">
+<meta property="og:description" content="Robo Co-op's development skill system for Claude Code. Reading the prompt won't find the bugs — running it will.">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="en" href="/">
+<link rel="alternate" hreflang="ja" href="/ja">
+<link rel="alternate" hreflang="x-default" href="/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23387E76'/></svg>">
+<link rel="stylesheet" href="/assets/fonts.css">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#top"><span class="dot"></span>robobuilder</a>
+    <nav class="topnav" aria-label="Sections">
+      <a class="navlink" href="#philosophy">philosophy</a>
+      <a class="navlink" href="#usage">usage</a>
+      <a class="navlink" href="#history">history</a>
+      <a class="lang" href="/ja" hreflang="ja" lang="ja">日本語</a>
+    </nav>
+  </div>
+</div>
+
+<main id="main">
+<div id="top"></div>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">ROBOBUILDER — BUILT BY ROBO CO-OP FOR CLAUDE CODE</div>
+        <h1>Reliability lives<br>in the <em>edges</em>.</h1>
+        <p class="lede">
+          Robo Co-op's development skill system for Claude Code. Lite, Standard, and Pro
+          share one conviction: never let the agent that wrote the code decide whether it's
+          good enough. Reading the prompt won't find the bugs — running it will.
+        </p>
+        <div class="hero-meta">
+          <span><b data-claim="skills">41</b> skills, <b data-claim="agents">9</b> agents, <b data-claim="hooks">6</b> lifecycle hooks</span>
+          <span><b data-claim="sweep_confirmed">51</b> defects found by running them</span>
+          <span><b data-claim="tests_floor">255+</b> tests holding the line</span>
+        </div>
+        <div class="install">
+          <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+          <div class="install-label">install — claude code</div>
+          <pre><span class="cmt">/plugin marketplace add</span> <span class="tok">Robo-Co-op/robobuilder-standard</span>
+<span class="cmt">/plugin install</span> <span class="tok">robobuilder@robo-coop-tools</span>
+<span class="cmt">/reload-plugins</span>
+<span class="cmt">/robobuilder:start</span></pre>
+        </div>
+      </div>
+      <div>
+        <div class="graph-panel">
+<svg viewBox="0 0 460 300" role="img" aria-label="dev-loop feeds a gate, which feeds a drift-monitor that watches dev-loop; a held-out set and the drift-monitor both veto champion-challenger, which tunes PROMPT.md">
+  <defs>
+    <marker id="mFeed" class="marker-feed" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z"/></marker>
+    <marker id="mWatch" class="marker-watch" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z"/></marker>
+    <marker id="mVeto" class="marker-veto" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z"/></marker>
+    <marker id="mTune" class="marker-tune" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z"/></marker>
+  </defs>
+  <path class="edge-watch pulse" marker-end="url(#mWatch)" d="M 384,110 C 340,20 140,4 76,34"/>
+  <text class="edge-label w" x="200" y="16">watch</text>
+  <path class="edge-feed" marker-end="url(#mFeed)" d="M 128,58 L 186,58"/>
+  <text class="edge-label t" x="140" y="52">feed</text>
+  <path class="edge-feed" marker-end="url(#mFeed)" d="M 280,68 C 320,80 350,90 372,108"/>
+  <text class="edge-label t" x="292" y="94">feed</text>
+  <path class="edge-veto" marker-end="url(#mVeto)" d="M 128,242 L 166,242"/>
+  <text class="edge-label v" x="130" y="234">veto</text>
+  <path class="edge-veto" marker-end="url(#mVeto)" d="M 372,158 C 350,185 330,200 306,218"/>
+  <text class="edge-label v" x="328" y="188">veto</text>
+  <path class="edge-tune pulse" marker-end="url(#mTune)" d="M 318,242 L 354,242"/>
+  <text class="edge-label w" x="316" y="234">tune</text>
+  <rect class="gnode-rect" x="24" y="34" width="104" height="46"/>
+  <text class="gnode-text" x="34" y="54">dev-loop</text>
+  <text class="gnode-sub" x="34" y="68">producer</text>
+  <rect class="gnode-rect" x="186" y="34" width="94" height="46"/>
+  <text class="gnode-text" x="196" y="54">gate</text>
+  <text class="gnode-sub" x="196" y="68">Stop-hook</text>
+  <rect class="gnode-rect" x="330" y="108" width="106" height="50"/>
+  <text class="gnode-text" x="340" y="129">drift-monitor</text>
+  <text class="gnode-sub" x="340" y="143">counter-metric</text>
+  <rect class="gnode-anchor" x="24" y="218" width="104" height="48"/>
+  <text class="gnode-text" x="34" y="239">held-out</text>
+  <text class="gnode-sub" x="34" y="253">external anchor</text>
+  <rect class="gnode-rect" x="166" y="218" width="140" height="48"/>
+  <text class="gnode-text" x="176" y="239">champion-</text>
+  <text class="gnode-text" x="176" y="251">challenger</text>
+  <rect class="gnode-rect" x="354" y="218" width="82" height="48"/>
+  <text class="gnode-text" x="364" y="239">PROMPT</text>
+  <text class="gnode-text" x="364" y="251">.md</text>
+</svg>
+          <div class="legend">
+            <span><i class="l-feed"></i>feed</span>
+            <span><i class="l-watch"></i>watch</span>
+            <span><i class="l-veto"></i>veto</span>
+            <span><i class="l-tune"></i>tune</span>
+          </div>
+          <div class="graph-caption">
+            <span>self-improving-dev-graph — robobuilder-pro / loop-pack</span>
+            <span>L5 — graph of loops</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="philosophy">
+  <div class="wrap">
+    <div class="eyebrow">§ 01 — DESIGN PHILOSOPHY</div>
+    <h2>robobuilder isn't a skill library.<br>It's an argument.</h2>
+    <p class="lede" style="margin-top:18px;">
+      An argument about how AI-assisted engineering should verify itself. Four convictions —
+      each one earned by a real incident in this system's own history, not a design meeting.
+    </p>
+
+    <div class="principles">
+      <div class="principle">
+        <div class="num">01 — MAKER ≠ CHECKER</div>
+        <h3>Never let the maker grade its own work.</h3>
+        <p>
+          <code>tdd-pair</code> detects, as an observable fact, any cycle that produced code
+          without a new failing test first, and returns nothing but OK or VIOLATION.
+          <code>cross-review</code> runs independent agents in parallel. Pro's
+          <code>champion-challenger</code> applies the same rule one level up — to a loop's own
+          attempted improvements. "Use this when you notice yourself cutting corners" is
+          rejected on principle: it hands the decision back to the exact judgment it exists
+          to replace.
+        </p>
+      </div>
+      <div class="principle">
+        <div class="num">02 — UNMEASURED ≠ PASSED</div>
+        <h3>"Never measured" was quietly counted as "passed."</h3>
+        <p>
+          The most common defect class in this system's history. <code>guard</code> advertised
+          "full safety mode" while its three PreToolUse hooks pointed at directories that exist
+          in no edition — enforcing nothing at all. <code>learn</code> compared a field no
+          writer ever emitted, so <code>NaN &gt; NaN</code> was always false, and reported an
+          empty log as a clean result. To a system, absent measurement and a clean pass look
+          identical. Telling them apart is now a guard's whole job.
+        </p>
+      </div>
+      <div class="principle">
+        <div class="num">03 — RUN IT, DON'T READ IT</div>
+        <h3>Prose review doesn't find it. Execution does.</h3>
+        <p>
+          An agent-team sweep ran every skill that had never once been executed.
+          <b data-claim="sweep_raised">114</b> suspected defects came back; independent
+          verifiers refuted <b data-claim="sweep_refuted">63</b> of them; the rest were
+          confirmed and fixed. Eleven-plus rounds of prompt-only review, run before that sweep,
+          had found none of them.
+        </p>
+      </div>
+      <div class="principle">
+        <div class="num">04 — L1–L5, GRAPH ENGINEERING</div>
+        <h3>Put a graph outside the loop.</h3>
+        <p>
+          Standard covers the inner loop — L1 (the agent loop) and L2 (verification: tdd /
+          diagnose / review). Pro adds the outer loop — L3 (event-driven) and L4
+          (self-improving) — and above it <code>L5</code>: a layer answering, with topology,
+          four failure modes no single loop can reach from the inside. L5 is
+          robobuilder-pro's own extension; it is never credited to the swyx / LangChain L1–L4
+          scale it cites. Cite the source, never claim its credit.
+        </p>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+    <table class="pathology-table">
+      <thead><tr><th>Failure mode</th><th>Why the loop can't see it from inside</th><th>The topological answer</th></tr></thead>
+      <tbody>
+        <tr><td>Metric gaming</td><td>It is succeeding by its own measure — nothing inside disagrees</td><td>Pairing — a watching loop on a counter-metric</td></tr>
+        <tr><td>Upward blindness</td><td>The target it chases is an input, not something it may question</td><td>Hierarchy — a slower loop owns that target</td></tr>
+        <tr><td>Inter-loop conflict</td><td>Neither loop can observe the other's effect</td><td>Arbitration — a loop above owns the trade-off</td></tr>
+        <tr><td>Measurement decay</td><td>It trusts its own inputs by construction</td><td>Audit — an independent loop anchored to ground truth</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<section id="usage">
+  <div class="wrap">
+    <div class="eyebrow">§ 02 — HOW TO USE</div>
+    <h2>Three editions.<br>One workflow.</h2>
+    <p class="lede" style="margin-top:18px;">
+      Learn it on Lite, run it daily on Standard, add Pro when you need it — one design at
+      three concentrations.
+    </p>
+
+    <div class="table-scroll" style="margin-top:36px;">
+      <table class="ed-table">
+        <thead><tr><th>Edition</th><th>Who it's for</th><th>What's inside</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="ed-name lite">Lite <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);font-weight:400;">v<span data-claim="lite_version">1.1.1</span></span></td>
+            <td>Beginners — learn the workflow in four commands</td>
+            <td><code>plan</code> / <code>build</code> / <code>improve</code> / <code>ship</code>, plus the same hooks and review agents</td>
+          </tr>
+          <tr>
+            <td class="ed-name standard">Standard <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);font-weight:400;">v<span data-claim="standard_version">1.8.0</span></span></td>
+            <td>Daily development</td>
+            <td>41 skills across 6 phases, 9 subagents, 6 lifecycle hooks, 3 playbooks</td>
+          </tr>
+          <tr>
+            <td class="ed-name pro">Pro <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);font-weight:400;">v<span data-claim="pro_version">1.2.1</span></span></td>
+            <td>Loop &amp; Graph Engineering — autonomous agent loops</td>
+            <td>An add-on beside Standard: design, gate and audit loops, then wire them into a graph with typed edges</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="install" style="max-width:560px;margin-top:36px;">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="install-label">standard edition — full install</div>
+      <pre><span class="cmt">/plugin marketplace add</span> <span class="tok">Robo-Co-op/robobuilder-standard</span>
+<span class="cmt">/plugin install</span> <span class="tok">robobuilder@robo-coop-tools</span>
+<span class="cmt">/reload-plugins</span>
+
+<span class="cmt">/robobuilder:start</span>              <span class="cmt">// points you to your first 3 skills</span>
+<span class="cmt">/robobuilder:tune-claude-md</span>     <span class="cmt">// personalizes your CLAUDE.md</span></pre>
+    </div>
+
+    <div class="eyebrow" style="margin-top:54px;">DAILY CYCLE</div>
+    <div class="cycle">
+      <span class="chip">Investigate</span><span class="arrow">→</span>
+      <span class="chip">Design</span><span class="arrow">→</span>
+      <span class="chip">Prototype</span><span class="arrow">→</span>
+      <span class="chip">Implement</span><span class="arrow">→</span>
+      <span class="chip">Refactor</span><span class="arrow">→</span>
+      <span class="chip">Review</span><span class="arrow">→</span>
+      <span class="chip">Ship</span>
+    </div>
+
+    <blockquote class="example">
+      <p><span class="who">$</span> <span class="arw">/robobuilder:build</span> "fix the auth bug"</p>
+      <p>&nbsp;&nbsp;Pick <span class="arw">→</span> shows the ready issues <span class="arw">→</span> you choose <span class="arw">→</span> moves it to in-progress</p>
+      <p>&nbsp;&nbsp;Bug branch <span class="arw">→</span> builds a reproduction loop <span class="arw">→</span> five ranked hypotheses, one variable at a time</p>
+      <p>&nbsp;&nbsp;Fix <span class="arw">→</span> regression test <span class="arw">→</span> <code>tdd-pair</code> confirms RED came before GREEN</p>
+      <p><span class="who">$</span> <span class="arw">/robobuilder:ship</span></p>
+      <p>&nbsp;&nbsp;pre-flight <span class="arw">→</span> CHANGELOG drafted <span class="arw">→</span> PR opened <span class="arw">→</span> waits for CI to go green <span class="arw">→</span> checks production</p>
+    </blockquote>
+  </div>
+</section>
+
+<section id="history">
+  <div class="wrap">
+    <div class="eyebrow">§ 03 — VERSION HISTORY</div>
+    <h2>A ledger of bugs found<br>by running the code.</h2>
+    <p class="lede" style="margin-top:18px;">
+      Every version below records what execution caught as much as what shipped. Eleven-plus
+      rounds of prompt-only review, run before any of it, caught none of these.
+    </p>
+
+    <div class="ledger-group">
+      <div class="ledger-repo">
+        <span class="repo-name">robobuilder-standard</span>
+        <span class="repo-current">→ current: v<span data-claim="standard_version">1.8.0</span></span>
+      </div>
+      <div class="table-scroll">
+      <table class="ledger">
+        <tbody>
+          <tr>
+            <td class="v"><b>v1.5.1</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc"><b>Reachability</b> — every <code>continue to Step N</code> jump checked against skipping a mandatory section</td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.6.0</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc"><b>Agent wiring</b> — five of nine bundled agents were dispatched by no skill at all. A naive string match found only three; two more were hiding inside a worked example's console output</td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.7.0</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc"><b>The runtime contract itself</b> — eleven skills, 124 call sites, invoked the helper binaries by a bare relative path that never resolves from an installed plugin. Every read came back silently empty; every write silently failed</td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.8.0</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc">Closed all <b>51</b> confirmed findings from the execution sweep — including <code>guard</code>, which enforced nothing at all</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="ledger-group">
+      <div class="ledger-repo">
+        <span class="repo-name">robobuilder-pro</span>
+        <span class="repo-current">→ current: v<span data-claim="pro_version">1.2.1</span></span>
+      </div>
+      <div class="table-scroll">
+      <table class="ledger">
+        <tbody>
+          <tr>
+            <td class="v"><b>v1.2.0</b></td><td class="tagcell"><span class="tag-pill tag-added">added</span></td>
+            <td class="desc"><b>The L5 graph layer</b> — <code>graph-design</code>, <code>champion-challenger</code>, <code>graph-audit</code></td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.2.1</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc">The same unwired-agent defect class Standard found, closed and pinned by a test</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="ledger-group">
+      <div class="ledger-repo">
+        <span class="repo-name">robobuilder-lite</span>
+        <span class="repo-current">→ current: v<span data-claim="lite_version">1.1.1</span></span>
+      </div>
+      <div class="table-scroll">
+      <table class="ledger">
+        <tbody>
+          <tr>
+            <td class="v"><b>v1.1.0</b></td><td class="tagcell"><span class="tag-pill tag-added">added</span></td>
+            <td class="desc"><code>plan</code> and <code>build</code> rebuilt to serve existing code, not only greenfield features</td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.1.1</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc">Two of six bundled agents were unwired — <code>tdd-pair</code> is the maker-≠-checker safeguard itself</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="stat-strip">
+      <div class="stat"><div class="n" data-claim="tests_floor">255+</div><div class="l">TESTS IN STANDARD ALONE</div></div>
+      <div class="stat"><div class="n" data-claim="sweep_raised">114</div><div class="l">FINDINGS RAISED BY THE SWEEP</div></div>
+      <div class="stat"><div class="n" data-claim="sweep_refuted">63</div><div class="l">REFUTED BY INDEPENDENT VERIFIERS</div></div>
+      <div class="stat"><div class="n" data-claim="sweep_confirmed">51</div><div class="l">CONFIRMED, THEN FIXED</div></div>
+    </div>
+
+    <div class="verified">
+      <h3>Every number on this page is under test.</h3>
+      <p>
+        A landing page is where a stale number survives longest — nothing breaks and nobody
+        notices. So each figure here is declared once in <code>site/claims.json</code> with the
+        source that derives it, and <code>test_site_claims.py</code> re-derives all of them
+        from the repository on every CI run. A claim with no source fails the suite; so does a
+        figure that appears in one language and not the other. Publishing the page and proving
+        it are the same commit.
+      </p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-thesis">Reliability lives in the edges. Reading won't find it. Running it will.</div>
+      <div class="foot-repos">
+        <a href="https://github.com/Robo-Co-op/robobuilder-standard">github.com/Robo-Co-op/robobuilder-standard</a>
+        <a href="https://github.com/Robo-Co-op/robobuilder-pro">github.com/Robo-Co-op/robobuilder-pro</a>
+        <a href="https://github.com/Robo-Co-op/robobuilder-lite">github.com/Robo-Co-op/robobuilder-lite</a>
+        <a href="/ja" hreflang="ja" lang="ja">日本語版はこちら</a>
+      </div>
+    </div>
+    <div class="foot-note">robobuilder — Robo Co-op's development skill system for Claude Code.</div>
+  </div>
+</footer>
+
+</body>
+</html>

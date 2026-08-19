@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>robobuilder — 信頼性はエッジの中にある</title>
+<meta name="description" content="Robo Co-op の Claude Code 向け開発スキル体系。コードを書いたエージェントに、そのコードの合否を判定させない。">
+<meta property="og:title" content="robobuilder">
+<meta property="og:description" content="Robo Co-op の Claude Code 向け開発スキル体系。読むだけでは見つからない。実行して、初めて分かる。">
+<meta property="og:type" content="website">
+<link rel="alternate" hreflang="en" href="/">
+<link rel="alternate" hreflang="ja" href="/ja">
+<link rel="alternate" hreflang="x-default" href="/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23387E76'/></svg>">
+<link rel="stylesheet" href="/assets/fonts.css">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#top"><span class="dot"></span>robobuilder</a>
+    <nav class="topnav" aria-label="セクション">
+      <a class="navlink" href="#philosophy">設計思想</a>
+      <a class="navlink" href="#usage">使い方</a>
+      <a class="navlink" href="#history">経緯</a>
+      <a class="lang" href="/" hreflang="en" lang="en">English</a>
+    </nav>
+  </div>
+</div>
+
+<main id="main">
+<div id="top"></div>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">ROBOBUILDER — BUILT BY ROBO CO-OP FOR CLAUDE CODE</div>
+        <h1>信頼性は、<br><em>エッジ</em>の中にある。</h1>
+        <p class="lede">
+          Robo Co-op の Claude Code 向け開発スキル体系。Lite・Standard・Pro の3つが
+          ひとつの信条を共有する ― コードを書いたエージェントに、そのコードの合否を判定させない。
+          プロンプトを読むだけでは不具合は見つからない。実行して、初めて見つかる。
+        </p>
+        <div class="hero-meta">
+          <span><b data-claim="skills">41</b> スキル / <b data-claim="agents">9</b> エージェント / <b data-claim="hooks">6</b> フック</span>
+          <span>実行して見つけた不具合 <b data-claim="sweep_confirmed">51</b> 件</span>
+          <span>それを固定するテスト <b data-claim="tests_floor">255+</b> 本</span>
+        </div>
+        <div class="install">
+          <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+          <div class="install-label">install — claude code</div>
+          <pre><span class="cmt">/plugin marketplace add</span> <span class="tok">Robo-Co-op/robobuilder-standard</span>
+<span class="cmt">/plugin install</span> <span class="tok">robobuilder@robo-coop-tools</span>
+<span class="cmt">/reload-plugins</span>
+<span class="cmt">/robobuilder:start</span></pre>
+        </div>
+      </div>
+      <div>
+        <div class="graph-panel">
+<svg viewBox="0 0 460 300" role="img" aria-label="dev-loop が gate に feed し、gate が drift-monitor に feed し、drift-monitor が dev-loop を watch する。held-out と drift-monitor が champion-challenger を veto し、champion-challenger が PROMPT.md を tune する">
+  <defs>
+    <marker id="mFeed" class="marker-feed" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z"/></marker>
+    <marker id="mWatch" class="marker-watch" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z"/></marker>
+    <marker id="mVeto" class="marker-veto" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z"/></marker>
+    <marker id="mTune" class="marker-tune" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z"/></marker>
+  </defs>
+  <path class="edge-watch pulse" marker-end="url(#mWatch)" d="M 384,110 C 340,20 140,4 76,34"/>
+  <text class="edge-label w" x="200" y="16">watch</text>
+  <path class="edge-feed" marker-end="url(#mFeed)" d="M 128,58 L 186,58"/>
+  <text class="edge-label t" x="140" y="52">feed</text>
+  <path class="edge-feed" marker-end="url(#mFeed)" d="M 280,68 C 320,80 350,90 372,108"/>
+  <text class="edge-label t" x="292" y="94">feed</text>
+  <path class="edge-veto" marker-end="url(#mVeto)" d="M 128,242 L 166,242"/>
+  <text class="edge-label v" x="130" y="234">veto</text>
+  <path class="edge-veto" marker-end="url(#mVeto)" d="M 372,158 C 350,185 330,200 306,218"/>
+  <text class="edge-label v" x="328" y="188">veto</text>
+  <path class="edge-tune pulse" marker-end="url(#mTune)" d="M 318,242 L 354,242"/>
+  <text class="edge-label w" x="316" y="234">tune</text>
+  <rect class="gnode-rect" x="24" y="34" width="104" height="46"/>
+  <text class="gnode-text" x="34" y="54">dev-loop</text>
+  <text class="gnode-sub" x="34" y="68">producer</text>
+  <rect class="gnode-rect" x="186" y="34" width="94" height="46"/>
+  <text class="gnode-text" x="196" y="54">gate</text>
+  <text class="gnode-sub" x="196" y="68">Stop-hook</text>
+  <rect class="gnode-rect" x="330" y="108" width="106" height="50"/>
+  <text class="gnode-text" x="340" y="129">drift-monitor</text>
+  <text class="gnode-sub" x="340" y="143">counter-metric</text>
+  <rect class="gnode-anchor" x="24" y="218" width="104" height="48"/>
+  <text class="gnode-text" x="34" y="239">held-out</text>
+  <text class="gnode-sub" x="34" y="253">external anchor</text>
+  <rect class="gnode-rect" x="166" y="218" width="140" height="48"/>
+  <text class="gnode-text" x="176" y="239">champion-</text>
+  <text class="gnode-text" x="176" y="251">challenger</text>
+  <rect class="gnode-rect" x="354" y="218" width="82" height="48"/>
+  <text class="gnode-text" x="364" y="239">PROMPT</text>
+  <text class="gnode-text" x="364" y="251">.md</text>
+</svg>
+          <div class="legend">
+            <span><i class="l-feed"></i>feed</span>
+            <span><i class="l-watch"></i>watch</span>
+            <span><i class="l-veto"></i>veto</span>
+            <span><i class="l-tune"></i>tune</span>
+          </div>
+          <div class="graph-caption">
+            <span>self-improving-dev-graph — robobuilder-pro / loop-pack</span>
+            <span>L5 — グラフ・オブ・ループ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="philosophy">
+  <div class="wrap">
+    <div class="eyebrow">§ 01 — 設計思想</div>
+    <h2>robobuilder はスキル集ではない。<br>ひとつの主張である。</h2>
+    <p class="lede" style="margin-top:18px;">
+      「AIによる開発は、どう自己検証されるべきか」という主張。4つの信条があり、そのどれもが
+      設計会議ではなく、このシステム自身に実際に起きたインシデントから引き出されている。
+    </p>
+
+    <div class="principles">
+      <div class="principle">
+        <div class="num">01 — MAKER ≠ CHECKER</div>
+        <h3>作った本人に、合否を判定させない。</h3>
+        <p>
+          <code>tdd-pair</code> は「失敗するテストを書かずにコードを書いたサイクル」を
+          観測可能な事実として検知し、OK / VIOLATION だけを返す。<code>cross-review</code> は
+          独立したエージェントを並行で走らせる。Pro の <code>champion-challenger</code> は
+          同じ原則をひとつ上の階層 ― ループ自身の「改善案」に適用する。
+          「サボっていると気づいたときに使う」というトリガーは原則として却下する。
+          それは、この仕組みが置き換えるはずの自己判断に、判断を差し戻してしまうからだ。
+        </p>
+      </div>
+      <div class="principle">
+        <div class="num">02 — UNMEASURED ≠ PASSED</div>
+        <h3>「測定されていない」が、静かに「合格」として数えられていた。</h3>
+        <p>
+          このシステムの歴史で最も多かった不具合クラス。<code>guard</code> は "full safety mode"
+          を謳いながら、3つの PreToolUse フックがどのエディションにも存在しないディレクトリを
+          指していた ― 実際には何ひとつ強制していなかった。<code>learn</code> はどの書き手も
+          出力しないフィールドを比較し、<code>NaN &gt; NaN</code> が常に false になり、
+          空のログを正常な結果として報告していた。システムから見れば、未測定と合格は
+          同じに見える。その2つを区別することが、いまガードの仕事そのものになっている。
+        </p>
+      </div>
+      <div class="principle">
+        <div class="num">03 — RUN IT, DON'T READ IT</div>
+        <h3>読むレビューでは見つからない。実行して、初めて見つかる。</h3>
+        <p>
+          一度も実行されたことのなかったスキル群に対し、エージェントチームによる実行スイープを
+          行った。<b data-claim="sweep_raised">114</b> 件の疑わしい不具合が挙がり、独立した
+          検証エージェントが <b data-claim="sweep_refuted">63</b> 件を退け、残りが確定して
+          修正された。その前に重ねた11ラウンド以上のプロンプトのみのレビューは、
+          そのうち一件も見つけられなかった。
+        </p>
+      </div>
+      <div class="principle">
+        <div class="num">04 — L1–L5, GRAPH ENGINEERING</div>
+        <h3>ループの外側に、グラフを置く。</h3>
+        <p>
+          Standard は内側のループ ― L1（エージェントループ）と L2（tdd / diagnose / review に
+          よる検証）を担う。Pro は外側 ― L3（イベント駆動）と L4（自己改善）を足し、
+          その上に <code>L5</code> を置く。単体のループの内側からは構造的に到達できない
+          4つの故障モードに、トポロジーで答える層だ。L5 は robobuilder-pro 独自の拡張であり、
+          引用元である swyx / LangChain の L1–L4 の功績として語ることは決してしない。
+          引用はする。手柄は名乗らない。
+        </p>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+    <table class="pathology-table">
+      <thead><tr><th>故障モード</th><th>ループの内側から見えない理由</th><th>トポロジーによる答え</th></tr></thead>
+      <tbody>
+        <tr><td>メトリックのゲーム化</td><td>自身の指標では成功している ― 内部に反対する要素がない</td><td>Pairing ― 対抗指標を見る監視ループ</td></tr>
+        <tr><td>上位目標への盲目</td><td>追う目標値は入力であり、疑うことを許されていない</td><td>Hierarchy ― より遅いループが目標を所有する</td></tr>
+        <tr><td>ループ間の対立</td><td>互いが互いに与える影響を観測できない</td><td>Arbitration ― 上位ループがトレードオフを裁定する</td></tr>
+        <tr><td>測定の劣化</td><td>自分への入力を構造的に信頼している</td><td>Audit ― 外部の正解に固定された独立の監査ループ</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<section id="usage">
+  <div class="wrap">
+    <div class="eyebrow">§ 02 — 使い方</div>
+    <h2>3つのエディション、<br>ひとつのワークフロー。</h2>
+    <p class="lede" style="margin-top:18px;">
+      Lite で覚え、Standard で日々使い、必要になったら Pro を足す ―
+      同じ設計を、3つの濃度で。
+    </p>
+
+    <div class="table-scroll" style="margin-top:36px;">
+      <table class="ed-table">
+        <thead><tr><th>エディション</th><th>対象</th><th>中身</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="ed-name lite">Lite <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);font-weight:400;">v<span data-claim="lite_version">1.1.1</span></span></td>
+            <td>初めての人 ― 4つのコマンドでワークフローを覚える</td>
+            <td><code>plan</code> / <code>build</code> / <code>improve</code> / <code>ship</code>、同じフックとレビューエージェント</td>
+          </tr>
+          <tr>
+            <td class="ed-name standard">Standard <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);font-weight:400;">v<span data-claim="standard_version">1.8.0</span></span></td>
+            <td>日々の開発</td>
+            <td>6フェーズにまたがる41スキル、9つのサブエージェント、6つのライフサイクルフック、3つのプレイブック</td>
+          </tr>
+          <tr>
+            <td class="ed-name pro">Pro <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);font-weight:400;">v<span data-claim="pro_version">1.2.1</span></span></td>
+            <td>ループ＆グラフ・エンジニアリング ― 自律エージェントループ</td>
+            <td>Standard に併設するアドオン。ループを設計・ゲート・監査し、typed edge でグラフに組む</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="install" style="max-width:560px;margin-top:36px;">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="install-label">standard edition — full install</div>
+      <pre><span class="cmt">/plugin marketplace add</span> <span class="tok">Robo-Co-op/robobuilder-standard</span>
+<span class="cmt">/plugin install</span> <span class="tok">robobuilder@robo-coop-tools</span>
+<span class="cmt">/reload-plugins</span>
+
+<span class="cmt">/robobuilder:start</span>              <span class="cmt">// 最初の3つのスキルへ案内</span>
+<span class="cmt">/robobuilder:tune-claude-md</span>     <span class="cmt">// CLAUDE.md を最適化</span></pre>
+    </div>
+
+    <div class="eyebrow" style="margin-top:54px;">DAILY CYCLE</div>
+    <div class="cycle">
+      <span class="chip">Investigate</span><span class="arrow">→</span>
+      <span class="chip">Design</span><span class="arrow">→</span>
+      <span class="chip">Prototype</span><span class="arrow">→</span>
+      <span class="chip">Implement</span><span class="arrow">→</span>
+      <span class="chip">Refactor</span><span class="arrow">→</span>
+      <span class="chip">Review</span><span class="arrow">→</span>
+      <span class="chip">Ship</span>
+    </div>
+
+    <blockquote class="example">
+      <p><span class="who">$</span> <span class="arw">/robobuilder:build</span> "認証まわりのバグを直して"</p>
+      <p>&nbsp;&nbsp;Pick <span class="arw">→</span> 着手可能なイシューを提示 <span class="arw">→</span> 選択 <span class="arw">→</span> in-progress へ</p>
+      <p>&nbsp;&nbsp;Bug branch <span class="arw">→</span> 再現ループを構築 <span class="arw">→</span> 5つの仮説を、変数を1つずつ動かして検証</p>
+      <p>&nbsp;&nbsp;修正 <span class="arw">→</span> リグレッションテスト <span class="arw">→</span> <code>tdd-pair</code> が RED が GREEN より先だったことを確認</p>
+      <p><span class="who">$</span> <span class="arw">/robobuilder:ship</span></p>
+      <p>&nbsp;&nbsp;pre-flight <span class="arw">→</span> CHANGELOG 起草 <span class="arw">→</span> PR 作成 <span class="arw">→</span> CI が green になるまで待機 <span class="arw">→</span> 本番を確認</p>
+    </blockquote>
+  </div>
+</section>
+
+<section id="history">
+  <div class="wrap">
+    <div class="eyebrow">§ 03 — バージョンの経緯</div>
+    <h2>実行して見つけた<br>不具合の台帳。</h2>
+    <p class="lede" style="margin-top:18px;">
+      以下のバージョンは、何を出したかと同じだけ、実行が何を捕まえたかの記録でもある。
+      その前に重ねた11ラウンド以上のプロンプトのみのレビューは、この一件も捕まえられなかった。
+    </p>
+
+    <div class="ledger-group">
+      <div class="ledger-repo">
+        <span class="repo-name">robobuilder-standard</span>
+        <span class="repo-current">→ 現在: v<span data-claim="standard_version">1.8.0</span></span>
+      </div>
+      <div class="table-scroll">
+      <table class="ledger">
+        <tbody>
+          <tr>
+            <td class="v"><b>v1.5.1</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc"><b>到達可能性</b> ― <code>continue to Step N</code> のジャンプが必須セクションを飛ばしていないか、全件を検証</td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.6.0</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc"><b>エージェント配線</b> ― 9つ中5つのエージェントがどのスキルからも呼ばれていなかった。素朴な文字列一致では3つしか見つからず、残り2つは実行例のコンソール出力の中に隠れていた</td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.7.0</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc"><b>ランタイム契約そのもの</b> ― 11スキル・124箇所が、インストール済みプラグインからは決して解決しない裸の相対パスでヘルパーを呼んでいた。読み取りは静かに空を返し、書き込みは静かに失敗していた</td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.8.0</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc">実行スイープで確定した <b>51</b> 件すべてを解消 ― 何ひとつ強制していなかった <code>guard</code> を含む</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="ledger-group">
+      <div class="ledger-repo">
+        <span class="repo-name">robobuilder-pro</span>
+        <span class="repo-current">→ 現在: v<span data-claim="pro_version">1.2.1</span></span>
+      </div>
+      <div class="table-scroll">
+      <table class="ledger">
+        <tbody>
+          <tr>
+            <td class="v"><b>v1.2.0</b></td><td class="tagcell"><span class="tag-pill tag-added">added</span></td>
+            <td class="desc"><b>L5 グラフ層</b> ― <code>graph-design</code>、<code>champion-challenger</code>、<code>graph-audit</code></td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.2.1</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc">Standard が見つけたのと同じ「未配線エージェント」の不具合クラスを解消し、テストで固定</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="ledger-group">
+      <div class="ledger-repo">
+        <span class="repo-name">robobuilder-lite</span>
+        <span class="repo-current">→ 現在: v<span data-claim="lite_version">1.1.1</span></span>
+      </div>
+      <div class="table-scroll">
+      <table class="ledger">
+        <tbody>
+          <tr>
+            <td class="v"><b>v1.1.0</b></td><td class="tagcell"><span class="tag-pill tag-added">added</span></td>
+            <td class="desc"><code>plan</code> と <code>build</code> を、新規開発だけでなく既存コードにも効くよう再構成</td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.1.1</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
+            <td class="desc">6つ中2つのエージェントが未配線 ― <code>tdd-pair</code> は maker ≠ checker の安全装置そのものだった</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="stat-strip">
+      <div class="stat"><div class="n" data-claim="tests_floor">255+</div><div class="l">STANDARD だけでのテスト数</div></div>
+      <div class="stat"><div class="n" data-claim="sweep_raised">114</div><div class="l">スイープが挙げた件数</div></div>
+      <div class="stat"><div class="n" data-claim="sweep_refuted">63</div><div class="l">独立検証が退けた件数</div></div>
+      <div class="stat"><div class="n" data-claim="sweep_confirmed">51</div><div class="l">確定し、修正した件数</div></div>
+    </div>
+
+    <div class="verified">
+      <h3>このページの数字は、すべてテスト下にある。</h3>
+      <p>
+        ランディングページは、古くなった数字が最も長く生き延びる場所だ ― 何も壊れず、
+        誰も気づかない。だからここに出るすべての数値は <code>site/claims.json</code> に
+        「その値を導出する情報源」とともに一度だけ宣言され、<code>test_site_claims.py</code> が
+        CI のたびにリポジトリから全件を再導出する。情報源のない主張はテストを落とす。
+        片方の言語にしかない数字も同じく落とす。ページを公開することと、その正しさを
+        証明することが、同じコミットになっている。
+      </p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-thesis">信頼性はエッジの中にある。読むだけでは見つからない。実行して、初めて分かる。</div>
+      <div class="foot-repos">
+        <a href="https://github.com/Robo-Co-op/robobuilder-standard">github.com/Robo-Co-op/robobuilder-standard</a>
+        <a href="https://github.com/Robo-Co-op/robobuilder-pro">github.com/Robo-Co-op/robobuilder-pro</a>
+        <a href="https://github.com/Robo-Co-op/robobuilder-lite">github.com/Robo-Co-op/robobuilder-lite</a>
+        <a href="/" hreflang="en" lang="en">English version</a>
+      </div>
+    </div>
+    <div class="foot-note">robobuilder — Robo Co-op's development skill system for Claude Code.</div>
+  </div>
+</footer>
+
+</body>
+</html>
