@@ -202,7 +202,7 @@
         <thead><tr><th>エディション</th><th>対象</th><th>中身</th></tr></thead>
         <tbody>
           <tr>
-            <td class="ed-name lite">Lite <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);font-weight:400;">v<span data-claim="lite_version">1.1.1</span></span></td>
+            <td class="ed-name lite">Lite <span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--ink-faint);font-weight:400;">v<span data-claim="lite_version">1.2.0</span></span></td>
             <td>初めての人 ― 4つのコマンドでワークフローを覚える</td>
             <td><code>plan</code> / <code>build</code> / <code>improve</code> / <code>ship</code>、同じフックとレビューエージェント</td>
           </tr>
@@ -315,7 +315,7 @@
     <div class="ledger-group">
       <div class="ledger-repo">
         <span class="repo-name">robobuilder-lite</span>
-        <span class="repo-current">→ 現在: v<span data-claim="lite_version">1.1.1</span></span>
+        <span class="repo-current">→ 現在: v<span data-claim="lite_version">1.2.0</span></span>
       </div>
       <div class="table-scroll">
       <table class="ledger">
@@ -327,6 +327,10 @@
           <tr>
             <td class="v"><b>v1.1.1</b></td><td class="tagcell"><span class="tag-pill tag-fixed">fixed</span></td>
             <td class="desc">6つ中2つのエージェントが未配線 ― <code>tdd-pair</code> は maker ≠ checker の安全装置そのものだった</td>
+          </tr>
+          <tr>
+            <td class="v"><b>v1.2.0</b></td><td class="tagcell"><span class="tag-pill tag-added">added</span></td>
+            <td class="desc">ガード・フック・認可ルールなどの「防御」を触る差分は、いま <code>improve --deep</code> を自動で要求し、実装とは独立に組んだ20件以上の突破試行を義務付ける。37本green・レビュアー3体を通ったフックが、独立に組んだ26件中13件の突破に実際に落ちた ― テストと実装が同じ死角を共有していた</td>
           </tr>
         </tbody>
       </table>
