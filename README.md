@@ -18,6 +18,39 @@ Pro adds the outer loop (L3 event-driven + L4 self-improving loops), and above i
 *graph* of loops, where reliability lives in the edges: who watches whom, who can veto whom.
 Lite is the on-ramp to Standard.
 
+## The operating system above the editions
+
+The three editions are the **toolbox** — *how* work gets done. *What must be true before work is
+allowed to move forward* is defined once, for every Robo Co-op repository, in
+**[robobuilder-os](https://github.com/Robo-Co-op/robobuilder-os)**.
+
+> **Robo Builder = HOW.  Robo Builder OS = MUST / WHEN / DONE.**
+
+Every project travels the same spine, and each state has to leave evidence behind before the next
+one may begin:
+
+```
+DEFINE -> DESIGN -> ISSUE -> BRANCH -> TEST -> BUILD -> REVIEW -> STAGE -> DEPLOY -> VERIFY -> OPERATE
+```
+
+| This repo's workflow | OS state |
+|---|---|
+| Foundation / Investigate | DEFINE |
+| Design, Prototype | DESIGN |
+| Plan → issues | ISSUE |
+| Implement (TDD) | BRANCH, TEST, BUILD |
+| Refactor | BUILD |
+| Review (`/diff-review`, `/cross-review`) | REVIEW |
+| Ship | STAGE, DEPLOY, VERIFY |
+
+Four gates block the transitions that matter: Definition of Ready, Merge Gate, Production Gate,
+Definition of Done.
+
+A repository declares which OS version it follows by copying
+`robobuilder-os/templates/AGENTS.md` into its root. Coding standards stay here in
+`CLAUDE.md.baseline`; lifecycle rules and gates live in the OS. If a rule is about taste, it
+belongs in this repo — if it decides whether a change may advance, it belongs in the OS.
+
 One install gives every team member:
 - 41 curated dev skills across 6 phases (Investigate → Design → Prototype → Implement → Refactor → Review → Ship)
 - 9 phase-specific subagents
