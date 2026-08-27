@@ -30,13 +30,29 @@ The heavyweight version of `/diff-review`. Its defining trait: **keep running ro
 ### Round 0: Situation check
 - `git diff main...HEAD --stat`
 - Confirm the list of affected files and the scale of the change
+- Settle, once, whether this change renders — by running the check, not by recalling
+  what the work felt like:
+
+  ```sh
+  git diff main...HEAD --name-only \
+    | grep -qE '\.(html|css|scss|sass|less|tsx|jsx|vue|svelte|astro)$' && echo RENDERS
+  ```
 
 ### Rounds 1–N: Parallel review → fix → re-review
 In each round, invoke the following subagents **in parallel**:
 1. `code-simplifier` — redundancy, abstraction, naming
 2. `test-writer` — missing tests
 3. `security-auditor` — OWASP
-4. (optional) `e2e-tester` — only for UI features
+4. `e2e-tester` — **in every round, once Round 0 printed `RENDERS`.** The first three
+   read the change; this is the only one that opens it. The trigger is a fact about the
+   diff rather than a call on whether the change "counts as UI", because that call
+   belongs to the maker and comes back "not really" almost every time — which is how a
+   five-round review still never renders the page.
+
+   If it fires and cannot run — no dev server, no reachable URL, no browser — record
+   `UNVERIFIED: rendered behaviour not checked (<reason>)` and carry it into every
+   subsequent round and the final verdict. It is not a Minor finding and it does not
+   age out: an unrun check is not a clean one.
 
 Aggregate the agents' outputs:
 - **Critical** → fix immediately, then start the next round
