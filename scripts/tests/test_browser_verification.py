@@ -68,14 +68,30 @@ def dispatch_context(text, needle="e2e-tester"):
     return hits, "\n".join(chunks)
 
 
+# A dispatch is a list item whose subject IS the agent -- the shape the other three
+# agents are already written in:
+#
+#     - `e2e-tester` — whenever ...
+#     4. `e2e-tester` — in every round ...
+#
+# Not merely a sentence that says the name. The skills below also mention the agent
+# in their fallback prose ("If `e2e-tester` fired but could not run"), and an earlier
+# version of this guard accepted that as proof of wiring: deleting the real call while
+# leaving the prose kept the suite green. A naive substring match blesses the exact
+# bug it exists to catch, which is the same correction test_agent_wiring.py needed.
+DISPATCH_LINE = re.compile(r"^\s*(?:[-*]|\d+\.)\s+`e2e-tester`")
+
+
 @pytest.mark.parametrize("name", sorted(REVIEW_SKILLS))
 def test_review_skill_can_reach_a_browser(name):
     path = REVIEW_SKILLS[name]
     assert path.exists(), f"{name} is missing at {path.relative_to(REPO)}"
     text = path.read_text(encoding="utf-8")
-    assert "e2e-tester" in text, (
+    dispatched = [line for line in text.splitlines() if DISPATCH_LINE.match(line)]
+    assert dispatched, (
         f"{name} dispatches no browser-capable agent, so every verdict it prints about "
-        "a rendered page is about a page it never opened."
+        "a rendered page is about a page it never opened. (Naming e2e-tester in prose is "
+        "not a dispatch -- it has to be listed alongside the other agents.)"
     )
 
 
