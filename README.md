@@ -82,6 +82,34 @@ Not personal-projects scaffolding — use Skill Creator for one-off skills you d
 /reload-plugins
 ```
 
+### Update
+
+Installing tells you nothing about how to get the next version, and that gap is not
+theoretical: a change can sit merged on `main` for days while every teammate still runs
+the old skill, because nothing about their setup looks wrong.
+
+```sh
+/plugin marketplace update robo-coop-tools
+/plugin update robobuilder@robo-coop-tools
+/reload-plugins
+```
+
+Check it actually landed — the version in `/plugin` should match the top entry of this
+repo's `CHANGELOG.md`. If it doesn't, the marketplace cache is stale, not you.
+
+Two things that bite:
+
+- **`/plugin` is CLI-only.** It does not exist in the web or desktop app. Those pick up
+  skills through account-level registration instead.
+- **A running session keeps the version it started with.** Plugins are snapshotted when
+  the session opens, so `/reload-plugins` or a new session is required — updating the
+  files under `~/.claude/plugins/` mid-session does not change what the current session
+  reads.
+
+If your copy under `~/.claude/plugins/<name>/` is a plain `git clone` rather than a
+marketplace install, `/plugin update` will not touch it. Run `git pull` in that
+directory instead, then `/reload-plugins`.
+
 On first install, run:
 
 ```sh
